@@ -126,7 +126,7 @@ public class BlueAutoWithActions extends OpMode {
                 }
                 break;
             case 3:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                /* This case09u09u9009u checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     sorter.setSorterTarget(89.6);
                     intake.intakeOn();
