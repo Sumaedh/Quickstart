@@ -21,6 +21,8 @@ public class Sorter {
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 
+    public double SORTER_TOLERANCE = 5;
+
     public double target = 0;
 
     public void initSorter(HardwareMap hwMap) {
@@ -37,6 +39,14 @@ public class Sorter {
     public void turnSorter(int turns) {
         for (int i = 0; i < turns; i++) {
             target += INCREMENT;
+        }
+    }
+
+    public boolean SorterAtTarget() {
+        if ((sorterMotor.getCurrentPosition() >= (target - SORTER_TOLERANCE)) && (sorterMotor.getCurrentPosition() <= (target+ SORTER_TOLERANCE))) {
+            return true;
+        } else {
+            return false;
         }
     }
 
