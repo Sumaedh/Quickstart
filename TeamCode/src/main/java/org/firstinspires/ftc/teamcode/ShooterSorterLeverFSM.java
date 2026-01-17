@@ -78,15 +78,12 @@ public class ShooterSorterLeverFSM {
 
         if (!seqRunning) return;
 
-        // Shooter always targets long during sequence
         shooter.setCurTargetVelocity("long");
 
-        // ---------------------- INITIAL 1.5s WAIT ----------------------
+        // initial 1.5s wait
         if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 < 1500.0) {
-            // waiting before first lever and shooter rev
             return;
         }
-        // ---------------------------------------------------------------
 
         switch (seqStage) {
 
@@ -108,7 +105,8 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_WAIT_AFTER_FIRST_LEVER_DOWN:
-                if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 >= WAIT_AFTER_FIRST_LEVER_DOWN_MS) {
+                // HALF the previous wait time before first sorter
+                if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 >= WAIT_AFTER_FIRST_LEVER_DOWN_MS / 2.0) {
                     sorter.turnSorter(SORTER_ADVANCE_STEPS);
                     seqStage = SEQ_WAIT_AFTER_FIRST_SORTER;
                     stageEntryTimeSeconds = nowSeconds;
@@ -116,7 +114,6 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_WAIT_AFTER_FIRST_SORTER:
-                // WAIT for sorter to reach target before continuing
                 if (sorter.SorterAtTarget()) {
                     seqStage = SEQ_WAIT_SHOOTER_BEFORE_SECOND;
                     stageEntryTimeSeconds = nowSeconds;
@@ -133,7 +130,8 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_SECOND_LEVER_UP:
-                if (nowSeconds - leverCommandedTimeSeconds >= LEVER_UP_STAY_MS / 1000.0) {
+                // HALF the lever up time for second lever
+                if (nowSeconds - leverCommandedTimeSeconds >= LEVER_UP_STAY_MS / 2.0 / 1000.0) {
                     lever.leverDown();
                     seqStage = SEQ_WAIT_AFTER_SECOND_LEVER_DOWN;
                     stageEntryTimeSeconds = nowSeconds;
@@ -141,7 +139,8 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_WAIT_AFTER_SECOND_LEVER_DOWN:
-                if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 >= WAIT_AFTER_SECOND_LEVER_DOWN_MS) {
+                // HALF the wait before second sorter
+                if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 >= WAIT_AFTER_SECOND_LEVER_DOWN_MS / 2.0) {
                     sorter.turnSorter(SORTER_ADVANCE_STEPS);
                     seqStage = SEQ_WAIT_AFTER_SECOND_SORTER;
                     stageEntryTimeSeconds = nowSeconds;
@@ -149,7 +148,6 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_WAIT_AFTER_SECOND_SORTER:
-                // WAIT for sorter to reach target
                 if (sorter.SorterAtTarget()) {
                     seqStage = SEQ_WAIT_SHOOTER_BEFORE_THIRD;
                     stageEntryTimeSeconds = nowSeconds;
@@ -166,7 +164,8 @@ public class ShooterSorterLeverFSM {
                 break;
 
             case SEQ_THIRD_LEVER_UP:
-                if (nowSeconds - leverCommandedTimeSeconds >= LEVER_UP_STAY_MS / 1000.0) {
+                // HALF the lever up time for third lever
+                if (nowSeconds - leverCommandedTimeSeconds >= LEVER_UP_STAY_MS / 2.0 / 1000.0) {
                     lever.leverDown();
                     seqStage = SEQ_WAIT_AFTER_THIRD_LEVER_DOWN;
                     stageEntryTimeSeconds = nowSeconds;
@@ -187,6 +186,7 @@ public class ShooterSorterLeverFSM {
                 break;
         }
     }
+
 
 
     public boolean isRunning() { return seqRunning; }
