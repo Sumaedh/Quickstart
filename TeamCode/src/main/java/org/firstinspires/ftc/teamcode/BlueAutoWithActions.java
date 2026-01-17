@@ -11,12 +11,19 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue Auto (ONLY PATHS)")
-public class BlueAuto extends OpMode {
+@Autonomous(name = "Blue Auto With Actions")
+public class BlueAutoWithActions extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
+
+
+    Intake intake = new Intake();
+    Lever lever = new Lever();
+    Pitch pitch = new Pitch();
+    Shooter shooter = new Shooter();
+    Sorter sorter = new Sorter();
 
     // TODO: INITIALIZING POSES
 
@@ -80,7 +87,9 @@ public class BlueAuto extends OpMode {
 
 
     // TODO: MANAGING PATH STATES (FSM)
+
     public void autonomousPathUpdate() {
+
         switch (pathState) {
             case 0:
                 follower.followPath(startPreload);
@@ -99,6 +108,7 @@ public class BlueAuto extends OpMode {
                     /* Score Preload */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    // shooter.setCurTargetVelocity("long");
                     follower.followPath(score1,true);
                     setPathState(2);
                 }
@@ -109,6 +119,8 @@ public class BlueAuto extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
+                    // TODO: DO SHOOTING SEQUENCE
+
                     follower.followPath(alignToBalls,true);
                     setPathState(3);
                 }
@@ -117,8 +129,13 @@ public class BlueAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     /* Score Sample */
-
+                    boolean sorted = true;
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    intake.intakeOn();
+                    if (sorted == true) {
+                        sorter.turnSorter(1);
+                        sorted = false;
+                    }
                     follower.followPath(intakeBall1,true);
                     setPathState(4);
                 }
@@ -129,8 +146,11 @@ public class BlueAuto extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(intakeBall2,true);
-                    setPathState(5);
+                    sorter.turnSorter(2);
+                    if (sorter.SorterAtTarget()) {
+                        follower.followPath(intakeBall2,true);
+                        setPathState(5);
+                    }
                 }
                 break;
             case 5:
@@ -139,8 +159,11 @@ public class BlueAuto extends OpMode {
                     /* Score Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(intakeBall3,true);
-                    setPathState(6);
+                    sorter.turnSorter(2);
+                    if (sorter.SorterAtTarget()) {
+                        follower.followPath(intakeBall3,true);
+                        setPathState(6);
+                    }
                 }
                 break;
             case 6:
@@ -149,6 +172,7 @@ public class BlueAuto extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
+                    intake.intakeOff();
                     follower.followPath(score2, true);
                     setPathState(7);
                 }
@@ -171,6 +195,7 @@ public class BlueAuto extends OpMode {
                 }
                 break;
         }
+
     }
 
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
@@ -184,6 +209,10 @@ public class BlueAuto extends OpMode {
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
     @Override
     public void loop() {
+
+        shooter.PIDFShootingLoop();
+        sorter.PIDFSorterLoop();
+        pitch.pitchDown();
 
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
@@ -208,6 +237,15 @@ public class BlueAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
+
+        intake.initIntake(hardwareMap);
+        lever.initLever(hardwareMap);
+        pitch.initPitch(hardwareMap);
+        shooter.initShooter(hardwareMap);
+        sorter.initSorter(hardwareMap);
+
+        lever.leverDown();
+        pitch.pitchUp();
 
     }
 
