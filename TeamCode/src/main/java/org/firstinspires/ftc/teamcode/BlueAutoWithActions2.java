@@ -189,7 +189,7 @@ public class BlueAutoWithActions2 extends OpMode {
 
                         sorterWaiting = false;
                         /* Score Sample */
-                        /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                        /* Since this is a pathChain, wijioije can have Pedro hold the end point while we are grabbing the sample */
                         follower.followPath(intakeBall3, true);
                         setPathState(6);
 
