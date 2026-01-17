@@ -97,7 +97,12 @@ public class turretTest extends OpMode {
 
     @Override
     public void loop() {
+
+        YawPitchRollAngles orientation = turretImu.getRobotYawPitchRollAngles();
+        double currentYawDeg = orientation.getYaw(AngleUnit.DEGREES);
+
         telemetry.addData("ticks", rotationMotor.getCurrentPosition());
+        telemetry.addData("Yaw", currentYawDeg);
         telemetry.addData("Wrap Override", wrapOverrideActive);
         telemetry.update();
     }

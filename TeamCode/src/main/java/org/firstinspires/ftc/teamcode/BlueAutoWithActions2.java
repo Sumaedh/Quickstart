@@ -32,7 +32,7 @@ public class BlueAutoWithActions2 extends OpMode {
     // Poses
     private final Pose startPose = new Pose(55.6, 6.8, Math.toRadians(90));
     private final Pose secondPose = new Pose(55.6108, 19.8324, Math.toRadians(90));
-    private final Pose scorePose = new Pose(60, 20, Math.toRadians(160));
+    private final Pose scorePose = new Pose(60, 20, Math.toRadians(142));
     private final Pose pickup3Pose = new Pose(41.124, 29.584, Math.toRadians(180));
     private final Pose pickup3PoseIntake1 = new Pose(36.622, 29.584, Math.toRadians(180));
     private final Pose pickup3PoseIntake2 = new Pose(31.292, 29.584, Math.toRadians(180));

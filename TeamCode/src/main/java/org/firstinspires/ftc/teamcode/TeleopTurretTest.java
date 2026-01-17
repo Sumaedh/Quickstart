@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -24,11 +27,9 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP WITH TURRET")
-public class TeleopNewestWithTurret extends OpMode {
+public class TeleopTurretTest extends OpMode {
 
-
-    // Shooting / sorter / drive (existing) rfuruiwfe
+    // Shooting / sorter / drive rgrrf(existing)
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
@@ -84,8 +85,8 @@ public class TeleopNewestWithTurret extends OpMode {
     DcMotor rotationMotorTurret;
 
     // encoder clip limits (turret) — names end with Turret
-    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1047;
-    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2771;
+    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 780;
+    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2975;
 
     // wrap override state (turret)
     private boolean wrapOverrideActiveTurret = false;
@@ -295,11 +296,10 @@ public class TeleopNewestWithTurret extends OpMode {
             motorPowerTurret = 0.0;
         }
 
-        /*
         // ENTER WRAP OVERRIDE
         if (!wrapOverrideActiveTurret &&
                 motorPowerTurret == 0.0 &&
-                Math.abs(errorTurret) > 30 &&
+                Math.abs(errorTurret) > 35 &&
                 (atHighLimitTurret || atLowLimitTurret)) {
 
             wrapOverrideActiveTurret = true;
@@ -308,15 +308,12 @@ public class TeleopNewestWithTurret extends OpMode {
 
         // WRAP OVERRIDE BEHAVIOR
         if (wrapOverrideActiveTurret) {
-            timer.reset();
             if (Math.abs(errorTurret) < 15) {
                 wrapOverrideActiveTurret = false;
             } else {
                 motorPowerTurret = stuckAtHighLimitTurret ? -0.8 : 0.8;
             }
         }
-
-         */
 
         rotationMotorTurret.setPower(motorPowerTurret);
 
@@ -329,4 +326,5 @@ public class TeleopNewestWithTurret extends OpMode {
 
         telemetry.update();
     }
+
 }

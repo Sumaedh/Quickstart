@@ -24,8 +24,7 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP WITH TURRET")
-public class TeleopNewestWithTurret extends OpMode {
+public class TeleopNewestWithTurret2 extends OpMode {
 
 
     // Shooting / sorter / drive (existing) rfuruiwfe
@@ -84,8 +83,8 @@ public class TeleopNewestWithTurret extends OpMode {
     DcMotor rotationMotorTurret;
 
     // encoder clip limits (turret) — names end with Turret
-    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1047;
-    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2771;
+    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1040;
+    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2140;
 
     // wrap override state (turret)
     private boolean wrapOverrideActiveTurret = false;
@@ -295,11 +294,10 @@ public class TeleopNewestWithTurret extends OpMode {
             motorPowerTurret = 0.0;
         }
 
-        /*
         // ENTER WRAP OVERRIDE
         if (!wrapOverrideActiveTurret &&
                 motorPowerTurret == 0.0 &&
-                Math.abs(errorTurret) > 30 &&
+                Math.abs(errorTurret) > 40 &&
                 (atHighLimitTurret || atLowLimitTurret)) {
 
             wrapOverrideActiveTurret = true;
@@ -315,8 +313,6 @@ public class TeleopNewestWithTurret extends OpMode {
                 motorPowerTurret = stuckAtHighLimitTurret ? -0.8 : 0.8;
             }
         }
-
-         */
 
         rotationMotorTurret.setPower(motorPowerTurret);
 
