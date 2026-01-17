@@ -19,8 +19,8 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "New PID external imu (ANGLE ADAPTED) 3")
-public class NewPIDExternalIMUAngleAdapted3 extends OpMode {
+@TeleOp(name = "turret test")
+public class turretTest extends OpMode {
 
 
     private PIDController controller;
@@ -50,8 +50,8 @@ public class NewPIDExternalIMUAngleAdapted3 extends OpMode {
     private double yawOffsetDeg = 0.0;
 
     // encoder clip limits
-    public static int TURRET_ENCODER_HIGH_LIMIT = 780;
-    public static int TURRET_ENCODER_LOW_LIMIT  = -2975;
+    private static final int TURRET_ENCODER_HIGH_LIMIT = 100;
+    private static final int TURRET_ENCODER_LOW_LIMIT  = -100;
 
     // WRAP OVERRIDE STATE
     private boolean wrapOverrideActive = false;
@@ -97,63 +97,6 @@ public class NewPIDExternalIMUAngleAdapted3 extends OpMode {
 
     @Override
     public void loop() {
-        controller.setPID(p, i, d);
-
-        YawPitchRollAngles orientation = turretImu.getRobotYawPitchRollAngles();
-        double currentYawDeg = orientation.getYaw(AngleUnit.DEGREES);
-
-        double delta = currentYawDeg - lastYawDeg;
-        if (delta > 180.0) delta -= 360.0;
-        else if (delta < -180.0) delta += 360.0;
-
-        unwrappedYawDeg += delta;
-        lastYawDeg = currentYawDeg;
-
-        double currentAngleDeg = unwrappedYawDeg - yawOffsetDeg;
-        double currentTargetDeg = (targetAngle > 180.0) ? targetAngle - 360.0 : targetAngle;
-        double error = currentTargetDeg - currentAngleDeg;
-
-        double pidOutput = controller.calculate(currentAngleDeg, currentTargetDeg);
-        double feedforward = Math.copySign(kFF, error);
-        double motorPower = pidOutput + feedforward;
-
-        motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
-
-        int turretEnc = rotationMotor.getCurrentPosition();
-
-        boolean atHighLimit = turretEnc >= TURRET_ENCODER_HIGH_LIMIT;
-        boolean atLowLimit  = turretEnc <= TURRET_ENCODER_LOW_LIMIT;
-
-        // HARD CLAMP
-        if ((atHighLimit && motorPower > 0.0) ||
-                (atLowLimit  && motorPower < 0.0)) {
-            motorPower = 0.0;
-        }
-
-        // ENTER WRAP OVERRIDE
-        if (!wrapOverrideActive &&
-                motorPower == 0.0 &&
-                Math.abs(error) > 35 &&
-                (atHighLimit || atLowLimit)) {
-
-            wrapOverrideActive = true;
-            stuckAtHighLimit = atHighLimit;
-        }
-
-        // WRAP OVERRIDE BEHAVIOR
-        if (wrapOverrideActive) {
-            if (Math.abs(error) < 15) {
-                wrapOverrideActive = false;
-            } else {
-                motorPower = stuckAtHighLimit ? -0.8 : 0.8;
-            }
-        }
-
-        rotationMotor.setPower(motorPower);
-
-        telemetry.addData("Turret Angle (deg)", currentAngleDeg);
-        telemetry.addData("Target (deg)", currentTargetDeg);
-        telemetry.addData("Error (deg)", error);
         telemetry.addData("ticks", rotationMotor.getCurrentPosition());
         telemetry.addData("Wrap Override", wrapOverrideActive);
         telemetry.update();
