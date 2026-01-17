@@ -8,8 +8,8 @@ public class ShooterSorterLeverFSM {
     private final double SEQ_SHOOTER_VELOCITY = 1680.0;
     private final double SHOOTER_TOLERANCE = 40.0;
 
-    private final long LEVER_UP_STAY_MS = 150L;
-    private final long WAIT_AFTER_FIRST_LEVER_DOWN_MS = 1100L;
+    private final long LEVER_UP_STAY_MS = 100L;
+    private final long WAIT_AFTER_FIRST_LEVER_DOWN_MS = 300L;
     private final long WAIT_AFTER_FIRST_SORTER_MS = 500L;
     private final long EXTRA_MS_AFTER_FIRST_SORT_AND_NEXT_LEVER = 325L;
     private final long WAIT_AFTER_SECOND_LEVER_DOWN_MS = 1500L;
@@ -83,7 +83,7 @@ public class ShooterSorterLeverFSM {
         shooter.setCurTargetVelocity("long");
 
         // initial 1.5s wait
-        if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 < 1500.0) {
+        if ((nowSeconds - stageEntryTimeSeconds) * 1000.0 < 1000.0) {
             return;
         }
 
