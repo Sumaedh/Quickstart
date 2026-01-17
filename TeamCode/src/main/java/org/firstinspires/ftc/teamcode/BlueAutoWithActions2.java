@@ -19,6 +19,13 @@ public class BlueAutoWithActions2 extends OpMode {
     private int pathState;
     private boolean justCompletedPath = false; // Flag to handle wait after path completion
     private boolean sorterWaiting = false;
+    private ShooterSorterLeverFSM fsm;
+
+    // ensure we only press the virtual button once at the first loop
+    private boolean startPressedOnce = false;
+
+    private boolean shootingSequenceStarted = false;
+    private boolean firstLoopAfterStart = true;
 
     Intake intake = new Intake();
     Lever lever = new Lever();
@@ -108,8 +115,18 @@ public class BlueAutoWithActions2 extends OpMode {
                     /* Grab Sample */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     // TODO: DO SHOOTING SEQUENCE
-                    follower.followPath(alignToBalls,true);
-                    setPathState(3);
+                    //follower.followPath(alignToBalls,true);
+                    //setPathState(3);
+                    if (!shootingSequenceStarted) {
+                        shootingSequenceStarted = true;
+                    }
+
+// Wait until FSM finishes before moving on
+                    if (fsm.isFinished()) {
+                        shootingSequenceStarted = false;
+                        follower.followPath(alignToBalls, true);
+                        setPathState(3);
+                    }
                 }
                 break;
             case 3:
@@ -187,7 +204,6 @@ public class BlueAutoWithActions2 extends OpMode {
                     intake.intakeOff();
                     /* Grab Sample */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    intake.intakeOff();
                     follower.followPath(score2, true);
                     setPathState(7);
                 }
@@ -197,8 +213,20 @@ public class BlueAutoWithActions2 extends OpMode {
                 if(!follower.isBusy()) {
                     /* Grab Sample */
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(goToEnd, true);
-                    setPathState(8);
+
+                    // TODO: DO SHOOTING SEQUENCE
+                    //follower.followPath(goToEnd, true);
+                    //setPathState(8);
+                    if (!shootingSequenceStarted) {
+                        shootingSequenceStarted = true;
+                    }
+
+// Wait until FSM finishes before ending auto
+                    if (fsm.isFinished()) {
+                        shootingSequenceStarted = false;
+                        follower.followPath(goToEnd, true);
+                        setPathState(8);
+                    }
                 }
                 break;
             case 8:
@@ -232,6 +260,9 @@ public class BlueAutoWithActions2 extends OpMode {
         follower.update();
         autonomousPathUpdate();
 
+        fsm.run(opmodeTimer.getElapsedTimeSeconds(), shootingSequenceStarted);
+
+
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -259,6 +290,7 @@ public class BlueAutoWithActions2 extends OpMode {
         sorter.initSorter(hardwareMap);
         lever.leverDown();
         pitch.pitchUp();
+        fsm = new ShooterSorterLeverFSM(shooter, sorter, lever);
     }
 
     /**
@@ -275,6 +307,7 @@ public class BlueAutoWithActions2 extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
+        startPressedOnce = true;
     }
 
     /**

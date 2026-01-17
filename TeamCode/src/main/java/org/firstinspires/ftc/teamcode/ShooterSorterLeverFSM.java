@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 public class ShooterSorterLeverFSM {
 
+    private boolean finished = false;
+
     private final int SORTER_ADVANCE_STEPS = 2;
     private final double SEQ_SHOOTER_VELOCITY = 1680.0;
     private final double SHOOTER_TOLERANCE = 40.0;
@@ -183,12 +185,14 @@ public class ShooterSorterLeverFSM {
                 seqRunning = false;
                 seqStage = SEQ_WAIT_SHOOTER_BEFORE_FIRST;
                 shooter.setCurTargetVelocity(prevCurTargetVelocity > 0 ? "long" : "none");
+                finished = true;
                 break;
         }
     }
 
-
-
+    public boolean isFinished() {
+        return finished;
+    }
     public boolean isRunning() { return seqRunning; }
     public int getStage() { return seqStage; }
 }
