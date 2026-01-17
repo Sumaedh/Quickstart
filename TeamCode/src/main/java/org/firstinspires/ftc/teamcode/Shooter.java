@@ -56,5 +56,7 @@ public class Shooter {
     }
 
 
+    public void setTargetVekocity(int i) {
 
+    }
 }
