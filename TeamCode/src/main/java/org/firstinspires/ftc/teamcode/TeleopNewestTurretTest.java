@@ -24,10 +24,11 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP (with turret)")
-public class TeleopNewestWithTurret extends OpMode {
+@TeleOp(name = "REAL TELEOP WITH TURRET")
+public class TeleopNewestTurretTest extends OpMode {
 
-    // Shooting / sorter / drive (existing)
+
+    // Shooting / sorter / drive (existing) rfuruiwfe
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
