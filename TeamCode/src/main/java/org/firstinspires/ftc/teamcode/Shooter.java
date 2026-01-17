@@ -15,6 +15,8 @@ public class Shooter {
     public double LONG_VELOCITY = 1680;
     public double SHORT_VELOCITY = 1420;
 
+    public double SHOOTER_TOLERANCE = 40;
+
     public void initShooter(HardwareMap hwMap) {
         shootingMotor = hwMap.get(DcMotorEx.class, "shootingMotor");
 
@@ -36,6 +38,14 @@ public class Shooter {
             curTargetVelocity = SHORT_VELOCITY;
         } else {
             curTargetVelocity = 0;
+        }
+    }
+
+    public boolean ShooterAtTarget() {
+        if ((shootingMotor.getVelocity() >= (curTargetVelocity - SHOOTER_TOLERANCE)) && (shootingMotor.getVelocity() <= (curTargetVelocity + SHOOTER_TOLERANCE))) {
+            return true;
+        } else {
+            return false;
         }
     }
 
