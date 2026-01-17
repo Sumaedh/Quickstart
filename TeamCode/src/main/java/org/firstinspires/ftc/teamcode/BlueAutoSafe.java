@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -10,9 +11,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-@Autonomous(name = "Blue Auto With Actions 2")
-public class BlueAutoWithActions2 extends OpMode {
+@Config
+@Autonomous(name = "Blue Auto Safe")
+public class BlueAutoSafe extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
@@ -29,6 +30,10 @@ public class BlueAutoWithActions2 extends OpMode {
     Shooter shooter = new Shooter();
     Sorter sorter = new Sorter();
 
+    public static double WAIT_FOR_POCKET = 0.5;
+    public static double INTAKE_BALL_WAIT = 0.5;
+    public static double SHOOTING_SEQUENCE_WAIT = 0;
+
     // Poses
     private final Pose startPose = new Pose(55.6, 6.8, Math.toRadians(90));
     private final Pose secondPose = new Pose(55.6108, 19.8324, Math.toRadians(90));
@@ -37,7 +42,7 @@ public class BlueAutoWithActions2 extends OpMode {
     private final Pose pickup3PoseIntake1 = new Pose(36.622, 29.584, Math.toRadians(180));
     private final Pose pickup3PoseIntake2 = new Pose(31.292, 29.584, Math.toRadians(180));
     private final Pose pickup3PoseIntake3 = new Pose(26.470, 29.584, Math.toRadians(180));
-    private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90));
+    private final Pose endPose = new Pose(37.55675675675676, 12.064864864864854, Math.toRadians(160));
 
     private Path startPreload;
     private PathChain score1, alignToBalls, intakeBall1, intakeBall2, intakeBall3, score2, goToEnd;
@@ -49,31 +54,6 @@ public class BlueAutoWithActions2 extends OpMode {
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
-                .build();
-
-        alignToBalls = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
-                .build();
-
-        intakeBall1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3Pose, pickup3PoseIntake1))
-                .setConstantHeadingInterpolation(pickup3PoseIntake1.getHeading())
-                .build();
-
-        intakeBall2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3PoseIntake1, pickup3PoseIntake2))
-                .setConstantHeadingInterpolation(pickup3PoseIntake2.getHeading())
-                .build();
-
-        intakeBall3 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3PoseIntake2, pickup3PoseIntake3))
-                .setConstantHeadingInterpolation(pickup3PoseIntake3.getHeading())
-                .build();
-
-        score2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3PoseIntake3, scorePose))
-                .setLinearHeadingInterpolation(pickup3PoseIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
         goToEnd = follower.pathBuilder()
@@ -118,7 +98,7 @@ public class BlueAutoWithActions2 extends OpMode {
                         lever.leverDown();             // neutral lever
                         sorter.setSorterTarget(0);     // safe/hold position
 
-                        follower.followPath(alignToBalls, true);
+                        follower.followPath(goToEnd, true);
                         setPathState(3);
                     }
                 }
@@ -133,7 +113,7 @@ public class BlueAutoWithActions2 extends OpMode {
                         actionTimer.resetTimer();
                     }
 
-                    if (justCompletedPath && actionTimer.getElapsedTimeSeconds() > 1.25) {
+                    if (justCompletedPath && actionTimer.getElapsedTimeSeconds() > WAIT_FOR_POCKET) {
                         justCompletedPath = false;
                         sorter.setSorterTarget(89.6);  // pocket for first new ball
                         sorterWaiting = true;
@@ -141,94 +121,14 @@ public class BlueAutoWithActions2 extends OpMode {
                     }
 
                     // Step 2: after sorter moves, turn intake on and go to next ball
-                    if (sorterWaiting && actionTimer.getElapsedTimeSeconds() > 0.75) {
+                    if (sorterWaiting && actionTimer.getElapsedTimeSeconds() > INTAKE_BALL_WAIT) {
                         sorterWaiting = false;
                         intake.intakeOn();
                         follower.followPath(intakeBall1, true);
-                        setPathState(4);
-                    }
-                }
-                break;
-
-            case 4:
-                // SECOND INTAKE POSITION
-                if (!follower.isBusy()) {
-                    if (!justCompletedPath && !sorterWaiting) {
-                        justCompletedPath = true;
-                        actionTimer.resetTimer();
-                    }
-
-                    if (justCompletedPath && actionTimer.getElapsedTimeSeconds() > 1.25) {
-                        justCompletedPath = false;
-                        sorter.setSorterTarget(268.8); // pocket for second new ball
-                        sorterWaiting = true;
-                        actionTimer.resetTimer();
-                    }
-
-                    if (sorterWaiting && actionTimer.getElapsedTimeSeconds() > 0.75) {
-                        sorterWaiting = false;
-                        follower.followPath(intakeBall2, true);
-                        setPathState(5);
-                    }
-                }
-                break;
-
-            case 5:
-                // THIRD INTAKE POSITION
-                if (!follower.isBusy()) {
-                    if (!justCompletedPath && !sorterWaiting) {
-                        justCompletedPath = true;
-                        actionTimer.resetTimer();
-                    }
-
-                    if (justCompletedPath && actionTimer.getElapsedTimeSeconds() > 1.25) {
-                        justCompletedPath = false;
-                        sorter.setSorterTarget(448);   // pocket for third new ball
-                        sorterWaiting = true;
-                        actionTimer.resetTimer();
-                    }
-
-                    if (sorterWaiting && actionTimer.getElapsedTimeSeconds() > 0.75) {
-                        sorterWaiting = false;
-                        follower.followPath(intakeBall3, true);
-                        setPathState(6);
-                    }
-                }
-                break;
-
-            case 6:
-                // Done intaking 3, go back to scorePose
-                if (!follower.isBusy()) {
-                    sorter.setSorterTarget(537.6); // shooting pocket
-                    intake.intakeOff();
-                    follower.followPath(score2, true);
-                    setPathState(7);
-                }
-                break;
-
-            case 7:
-                // SECOND SHOOTING SEQUENCE (for the 3 newly collected balls)
-                if (!follower.isBusy()) {
-                    if (!shootingSequenceStarted) {
-                        shootingSequenceStarted = true;
-                        actionTimer.resetTimer();
-                    }
-
-                    if (fsm.isFinished()) {
-                        shootingSequenceStarted = false;
-
-                        // Reset mechanisms again after shooting
-                        shooter.setTargetVekocity(0);
-                        intake.intakeOff();
-                        lever.leverDown();
-                        sorter.setSorterTarget(0);
-
-                        follower.followPath(goToEnd, true);
                         setPathState(8);
                     }
                 }
                 break;
-
             case 8:
                 // Parked / done
                 if (!follower.isBusy()) {

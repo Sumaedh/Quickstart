@@ -84,8 +84,8 @@ public class TeleopNewestWithTurret extends OpMode {
     DcMotor rotationMotorTurret;
 
     // encoder clip limits (turret) — names end with Turret
-    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 780;
-    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2975;
+    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1950;
+    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -1702;
 
     // wrap override state (turret)
     private boolean wrapOverrideActiveTurret = false;
@@ -298,7 +298,7 @@ public class TeleopNewestWithTurret extends OpMode {
         // ENTER WRAP OVERRIDE
         if (!wrapOverrideActiveTurret &&
                 motorPowerTurret == 0.0 &&
-                Math.abs(errorTurret) > 35 &&
+                Math.abs(errorTurret) > 30 &&
                 (atHighLimitTurret || atLowLimitTurret)) {
 
             wrapOverrideActiveTurret = true;
@@ -307,6 +307,7 @@ public class TeleopNewestWithTurret extends OpMode {
 
         // WRAP OVERRIDE BEHAVIOR
         if (wrapOverrideActiveTurret) {
+            timer.reset();
             if (Math.abs(errorTurret) < 15) {
                 wrapOverrideActiveTurret = false;
             } else {
