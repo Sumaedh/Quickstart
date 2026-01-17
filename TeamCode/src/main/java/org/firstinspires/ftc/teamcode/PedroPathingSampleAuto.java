@@ -186,7 +186,7 @@ public class PedroPathingSampleAuto extends OpMode {
         setPathState(0);
     }
 
-    /** We do not use this because everything should automatically disable **/
+    /** We do not use this because everything should automatically disgvrrgbgrggbtrtgtg54able **/
     @Override
     public void stop() {}
 }
