@@ -1,14 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
-
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.acmerobotics.dashboard.config.Config;
-import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -19,13 +15,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp
-public class TeleopNew extends OpMode {
+public class TeleopOld extends OpMode {
 
     public double fShooting = 15;
     public double fShootingshort = 15.25;
@@ -44,7 +38,6 @@ public class TeleopNew extends OpMode {
     private PIDController pid;
 
     final int READ_PERIOD = 1;
-    public static Follower follower;
 
 
     private static final double TICKS_PER_REV = 537.6;
@@ -224,7 +217,6 @@ public class TeleopNew extends OpMode {
         backRight.setPower(0);
         pitchServo.setDirection(Servo.Direction.REVERSE);
         pitchServo.setPosition(0);
-        follower = Constants.createFollower(hardwareMap);
 
         sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -235,8 +227,6 @@ public class TeleopNew extends OpMode {
     public void start() {
         timer.reset();
         pitchServo.setPosition(0.42);
-        follower.startTeleopDrive();
-        follower.update();
     }
 
     private void advanceSorterBySteps(int steps) {
@@ -250,16 +240,12 @@ public class TeleopNew extends OpMode {
     public void loop() {
 
         pitchServo.setPosition(0.42);
-//        follower.startTeleopDrive();
-//        follower.update();
-        follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-        follower.update();
 
-//        if (gamepad1.left_trigger > 0.75) {
-//            driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-//        } else {
-//            driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-//        }
+        if (gamepad1.left_trigger > 0.75) {
+            driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        } else {
+            driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        }
 
         if (gamepad1.a) intakeMotor.setPower(1.0);
         if (gamepad1.b) intakeMotor.setPower(0);
