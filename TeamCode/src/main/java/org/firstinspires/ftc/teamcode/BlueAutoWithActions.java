@@ -128,15 +128,11 @@ public class BlueAutoWithActions extends OpMode {
             case 3:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                    /* Score Sample */
-                    boolean sorted = true;
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    sorter.setSorterTarget(89.6);
                     intake.intakeOn();
-                    if (sorted == true) {
-                        sorter.turnSorter(1);
-                        sorted = false;
-                    }
-                    follower.followPath(intakeBall1,true);
+
+                    // Wait for sorter to reach target before continuing
+                    follower.followPath(intakeBall1, true);
                     setPathState(4);
                 }
                 break;
@@ -146,11 +142,8 @@ public class BlueAutoWithActions extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    sorter.turnSorter(2);
-                    if (sorter.SorterAtTarget()) {
-                        follower.followPath(intakeBall2,true);
-                        setPathState(5);
-                    }
+                    follower.followPath(intakeBall2, true);
+                    setPathState(5);
                 }
                 break;
             case 5:
@@ -159,11 +152,8 @@ public class BlueAutoWithActions extends OpMode {
                     /* Score Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    sorter.turnSorter(2);
-                    if (sorter.SorterAtTarget()) {
-                        follower.followPath(intakeBall3,true);
-                        setPathState(6);
-                    }
+                    follower.followPath(intakeBall3, true);
+                    setPathState(6);
                 }
                 break;
             case 6:

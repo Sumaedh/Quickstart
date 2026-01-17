@@ -42,6 +42,10 @@ public class Sorter {
         }
     }
 
+    public void setSorterTarget(double ticks) {
+        target = ticks;
+    }
+
     public boolean SorterAtTarget() {
         if ((sorterMotor.getCurrentPosition() >= (target - SORTER_TOLERANCE)) && (sorterMotor.getCurrentPosition() <= (target+ SORTER_TOLERANCE))) {
             return true;
