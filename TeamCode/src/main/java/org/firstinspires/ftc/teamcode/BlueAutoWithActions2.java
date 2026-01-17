@@ -181,20 +181,18 @@ public class BlueAutoWithActions2 extends OpMode {
                         justCompletedPath = true;
                         actionTimer.resetTimer();
                     }
-                    if (justCompletedPath && actionTimer.getElapsedTimeSeconds() > 1.25) {
                         justCompletedPath = false;
                         sorter.setSorterTarget(448);
                         intake.intakeOn();
                         actionTimer.resetTimer();
                         sorterWaiting = true;
-                    }
-                    if (sorterWaiting && actionTimer.getElapsedTimeSeconds() > 0.75) {
+
                         sorterWaiting = false;
                         /* Score Sample */
                         /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                         follower.followPath(intakeBall3, true);
                         setPathState(6);
-                    }
+
                 }
                 break;
             case 6:
