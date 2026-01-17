@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @TeleOp(name = "REAL TELEOP (with turret)")
 public class TeleopNewestWithTurret extends OpMode {
 
-    // Shooting / sorter / drive (existing)
+    // Shooting / sorter / drive rgrrf(existing)
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
