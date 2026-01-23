@@ -21,7 +21,7 @@ public class Sorter {
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 
-    public double SORTER_TOLERANCE = 5;
+    public double SORTER_TOLERANCE = 4;
 
     public double target = 0;
 
@@ -44,6 +44,11 @@ public class Sorter {
 
     public void setSorterTarget(double ticks) {
         target = ticks;
+    }
+
+    public Runnable setSorterTargetParametric(double ticks) {
+        target = ticks;
+        return null;
     }
 
     public boolean SorterAtTarget() {

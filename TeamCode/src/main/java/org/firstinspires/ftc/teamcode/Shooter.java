@@ -15,7 +15,7 @@ public class Shooter {
     public double LONG_VELOCITY = 1680;
     public double SHORT_VELOCITY = 1420;
 
-    public double SHOOTER_TOLERANCE = 40;
+    public double SHOOTER_TOLERANCE = 30;
 
     public void initShooter(HardwareMap hwMap) {
         shootingMotor = hwMap.get(DcMotorEx.class, "shootingMotor");
@@ -30,12 +30,27 @@ public class Shooter {
         shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
+    public Runnable setCurTargetVelocityParametric(String distance) {
+        if (distance == "long") {
+            curTargetVelocity = LONG_VELOCITY;
+        } else if (distance == "short") {
+            curTargetVelocity = SHORT_VELOCITY;
+        } else if (distance == "0") {
+            curTargetVelocity = 0;
+        } else {
+            curTargetVelocity = 0;
+        }
+        return null;
+    }
+
 
     public void setCurTargetVelocity(String distance) {
         if (distance == "long") {
             curTargetVelocity = LONG_VELOCITY;
         } else if (distance == "short") {
             curTargetVelocity = SHORT_VELOCITY;
+        } else if (distance == "0") {
+            curTargetVelocity = 0;
         } else {
             curTargetVelocity = 0;
         }

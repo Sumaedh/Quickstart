@@ -24,8 +24,8 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP (with turret)")
-public class TeleopNewestWithTurret extends OpMode {
+@TeleOp(name = "REAL TELEOP (with turret) 2")
+public class TeleopNewestWithTurret2 extends OpMode {
 
     // Shooting / sorter / drive rgrrf(existing)
     public double fShooting = 15;
@@ -79,8 +79,6 @@ public class TeleopNewestWithTurret extends OpMode {
     private double unwrappedYawDegTurret = 0.0;
     private double yawOffsetDegTurret = 0.0;
 
-    private double initialErrorSignTurret = 0.0;   //  -1, 0, or +1
-
     // turret motor (renamed)
     DcMotor rotationMotorTurret;
 
@@ -95,6 +93,9 @@ public class TeleopNewestWithTurret extends OpMode {
     // ADDED: track when wrap override started so we can enforce the "1 second before forcing stop on limit" rule
     private long wrapStartTimeMs = 0;
     private static final long WRAP_MIN_ACTIVE_MS = 600; // 1 second
+
+    // small epsilon for float comparisons instead of exact equality
+    private static final double MOTOR_ZERO_EPS = 1e-6;
 
     // Utility drive functions (unchanged)
     public void driveMecanum(double left_y, double left_x, double right_x){
@@ -210,6 +211,14 @@ public class TeleopNewestWithTurret extends OpMode {
         pitchServo.setPosition(0.42);
     }
 
+    // helper: normalize angle to [-180, 180]
+    private double normalizeAngle(double angle) {
+        angle = angle % 360.0;
+        if (angle <= -180.0) angle += 360.0;
+        else if (angle > 180.0) angle -= 360.0;
+        return angle;
+    }
+
     @Override
     public void loop() {
         // PITCH (unchanged)
@@ -282,11 +291,14 @@ public class TeleopNewestWithTurret extends OpMode {
 
         double currentAngleDegTurret = unwrappedYawDegTurret - yawOffsetDegTurret;
         double currentTargetDegTurret = (targetAngleTurret > 180.0) ? targetAngleTurret - 360.0 : targetAngleTurret;
-        double errorTurret = currentTargetDegTurret - currentAngleDegTurret;
-        double errorTurret2 = currentTargetDegTurret - currentYawDeg;
+
+        // raw and shortest (wrapped) angular difference
+        double rawErrorTurret = currentTargetDegTurret - currentAngleDegTurret;
+        double shortErrorTurret = normalizeAngle(rawErrorTurret);
 
         double pidOutputTurret = controllerTurret.calculate(currentAngleDegTurret, currentTargetDegTurret);
-        double feedforwardTurret = Math.copySign(kFFTurret, errorTurret);
+        // keep PID using unwrapped angle (unchanged); use shortError for feedforward direction to match shortest path
+        double feedforwardTurret = Math.copySign(kFFTurret, shortErrorTurret);
         double motorPowerTurret = pidOutputTurret + feedforwardTurret;
 
         motorPowerTurret = Math.max(-1.0, Math.min(1.0, motorPowerTurret));
@@ -302,16 +314,15 @@ public class TeleopNewestWithTurret extends OpMode {
             motorPowerTurret = 0.0;
         }
 
-        // ENTER WRAP OVERRIDE
+        // ENTER WRAP OVERRIDE (use shortest-angle error, and tolerant motor-zero check)
         if (!wrapOverrideActiveTurret &&
-                motorPowerTurret == 0.0 &&
-                Math.abs(errorTurret) > 35 &&
+                Math.abs(motorPowerTurret) < MOTOR_ZERO_EPS &&
+                Math.abs(shortErrorTurret) > 35 &&
                 (atHighLimitTurret || atLowLimitTurret)) {
 
             wrapOverrideActiveTurret = true;
             stuckAtHighLimitTurret = atHighLimitTurret;
 
-            initialErrorSignTurret = Math.signum(errorTurret2);
             // ADDED: record the time we entered wrap override
             wrapStartTimeMs = System.currentTimeMillis();
         }
@@ -320,16 +331,13 @@ public class TeleopNewestWithTurret extends OpMode {
         if (wrapOverrideActiveTurret) {
             // ADDED: if we've been in wrap override for at least 1 second and we hit any encoder limit,
             // stop and exit wrap override (prevents never-stopping behavior as requested)
-            boolean crossedTarget = (Math.signum(errorTurret2) != initialErrorSignTurret) &&
-                    (Math.signum(errorTurret2) != 0);
-
             long elapsed = System.currentTimeMillis() - wrapStartTimeMs;
-            if ((elapsed >= WRAP_MIN_ACTIVE_MS && (atHighLimitTurret || atLowLimitTurret)) || crossedTarget) {
+            if (elapsed >= WRAP_MIN_ACTIVE_MS && (atHighLimitTurret || atLowLimitTurret)) {
                 // stop and exit wrap override
                 motorPowerTurret = 0.0;
                 wrapOverrideActiveTurret = false;
             } else {
-                if (Math.abs(errorTurret) < 15) {
+                if (Math.abs(shortErrorTurret) < 15) {
                     wrapOverrideActiveTurret = false;
                 } else {
                     motorPowerTurret = stuckAtHighLimitTurret ? -0.9 : 0.9;
@@ -342,7 +350,8 @@ public class TeleopNewestWithTurret extends OpMode {
         // Telemetry for turret + some teleop info
         telemetry.addData("Turret Angle (deg)", currentAngleDegTurret);
         telemetry.addData("Target (deg)", currentTargetDegTurret);
-        telemetry.addData("Error (deg)", errorTurret);
+        telemetry.addData("Raw Error (deg)", rawErrorTurret);
+        telemetry.addData("Short Error (deg)", shortErrorTurret);
         telemetry.addData("ticks", turretEnc);
         telemetry.addData("Wrap Override", wrapOverrideActiveTurret);
 
