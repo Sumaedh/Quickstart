@@ -30,7 +30,7 @@ public class Shooter {
         shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
-    public Runnable setCurTargetVelocityParametric(String distance) {
+    public void setCurTargetVelocityParametric(String distance) {
         if (distance == "long") {
             curTargetVelocity = LONG_VELOCITY;
         } else if (distance == "short") {
@@ -40,7 +40,6 @@ public class Shooter {
         } else {
             curTargetVelocity = 0;
         }
-        return null;
     }
 
 
