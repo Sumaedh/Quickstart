@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue Auto With Actions 2")
+@Autonomous(name = "Red Auto")
 public class RedAllianceAuto6Ball extends OpMode {
 
     private Follower follower;
@@ -32,8 +32,8 @@ public class RedAllianceAuto6Ball extends OpMode {
     // Poses
     private final Pose startPose = new Pose(88.4, 6.8, Math.toRadians(90));
     private final Pose secondPose = new Pose(88.3892, 19.8324, Math.toRadians(90));
-    private final Pose scorePose = new Pose(84, 20, Math.toRadians(38));
-    private final Pose pickup3Pose = new Pose(102.876, 29.584, Math.toRadians(0));
+    private final Pose scorePose = new Pose(84, 20, Math.toRadians(48));
+    private final Pose pickup3Pose = new Pose(100, 29.584, Math.toRadians(0));
     private final Pose pickup3PoseIntake1 = new Pose(107.378, 29.584, Math.toRadians(0));
     private final Pose pickup3PoseIntake2 = new Pose(112.708, 29.584, Math.toRadians(0));
     private final Pose pickup3PoseIntake3 = new Pose(117.530, 29.584, Math.toRadians(0));
