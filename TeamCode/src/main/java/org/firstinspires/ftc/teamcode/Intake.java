@@ -20,6 +20,6 @@ public class Intake {
     }
 
     public void intakeOff() {
-        intakeMotor.setPower(1);
+        intakeMotor.setPower(0);
     }
 }

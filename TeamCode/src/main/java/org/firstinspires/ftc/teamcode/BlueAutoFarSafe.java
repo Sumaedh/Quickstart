@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous
-public class BlueAutoREMODELEDParametric extends OpMode {
+public class BlueAutoFarSafe extends OpMode {
 
     // HEIGHT: 17.25 INCHES
     // WIDTH: 17.75 inches
@@ -38,26 +38,18 @@ public class BlueAutoREMODELEDParametric extends OpMode {
     // Poses
 
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
+    private final Pose secondPose = new Pose(55.6108, 14, Math.toRadians(90));
+    private final Pose scorePose = new Pose(59.421, 15.18, Math.toRadians(124.5));
+    //137
+    private final Pose pickupLowPose = new Pose(48, 36, Math.toRadians(180));
+    private final Pose pickupLowIntake1 = new Pose(37.622, 36, Math.toRadians(180));
+    private final Pose pickupLowIntake2 = new Pose(32.292, 36, Math.toRadians(180));
+    private final Pose pickupLowIntake3 = new Pose(24, 36, Math.toRadians(180));
 
-    private final Pose secondPose = new Pose(55.6108, 19.8324, Math.toRadians(90));
-
-    private final Pose scorePose = new Pose(59.535, 16.93, Math.toRadians(137));
-
-    private final Pose pickupMidPose = new Pose(43.681, 35.484, Math.toRadians(180));
-
-    private final Pose pickupMidIntake1 = new Pose(37.622, 35.484, Math.toRadians(180));
-
-    private final Pose pickupMidIntake2 = new Pose(32.292, 35.484, Math.toRadians(180));
-
-    private final Pose pickupMidIntake3 = new Pose(27.17, 35.484, Math.toRadians(180));
-
-    private final Pose pickupLowPose = new Pose(43.681 - 24, 35.484, Math.toRadians(180));
-
-    private final Pose pickupLowIntake1 = new Pose(37.622 - 24, 35.484, Math.toRadians(180));
-
-    private final Pose pickupLowIntake2 = new Pose(32.292 - 24, 35.484, Math.toRadians(180));
-
-    private final Pose pickupLowIntake3 = new Pose(27.17 - 24, 35.484, Math.toRadians(180));
+    private final Pose pickupMidPose = new Pose(44, 36 +24, Math.toRadians(180));
+    private final Pose pickupMidIntake1 = new Pose(37.622, 36 + 24, Math.toRadians(180));
+    private final Pose pickupMidIntake2 = new Pose(32.292, 36 + 24, Math.toRadians(180));
+    private final Pose pickupMidIntake3 = new Pose(24, 36 + 24, Math.toRadians(180));
 
     private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90));
 
@@ -68,575 +60,303 @@ public class BlueAutoREMODELEDParametric extends OpMode {
     // PATH BUILDER
 
     public void buildPaths() {
-
         startPreload = new Path(new BezierLine(startPose, secondPose));
-
         startPreload.setConstantHeadingInterpolation(secondPose.getHeading());
 
         score1 = follower.pathBuilder()
-
                 .addPath(new BezierLine(secondPose, scorePose))
-
                 .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
-
+                .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
-
-                .build();
-
-        alignToMid = follower.pathBuilder()
-
-                .addPath(new BezierLine(scorePose, pickupMidPose))
-
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupMidPose.getHeading())
-
-                .build();
-
-        intakeMid = follower.pathBuilder()
-
-                .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
-
-                .addParametricCallback(0.25, () -> sorter.setSorterTargetParametric(627.2))
-
-                .addParametricCallback(0.55, () -> sorter.setSorterTargetParametric(806.4))
-
-                .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
-
-                .setBrakingStrength(0.5)
-
-                .build();
-
-        scoreFromMid = follower.pathBuilder()
-
-                .addPath(new BezierLine(pickupMidIntake3, scorePose))
-
-                .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
-
                 .build();
 
         alignToLow = follower.pathBuilder()
-
                 .addPath(new BezierLine(scorePose, pickupLowPose))
-
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickupLowPose.getHeading())
-
                 .build();
 
         intakeLow = follower.pathBuilder()
-
                 .addPath(new BezierLine(pickupLowPose, pickupLowIntake3))
-
-                .addParametricCallback(0.25, () -> sorter.setSorterTargetParametric(985.6))
-
-                .addParametricCallback(0.55, () -> sorter.setSorterTargetParametric(1164.8))
-
+                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(627.2))
+                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(806.4))
                 .setConstantHeadingInterpolation(pickupLowIntake3.getHeading())
-
                 .setBrakingStrength(0.5)
-
                 .build();
 
         scoreFromLow = follower.pathBuilder()
-
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
+                .build();
 
+        alignToMid = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickupMidPose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupMidPose.getHeading())
+                .build();
+
+        // TODO: FIX
+        intakeMid = follower.pathBuilder()
+                .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
+                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(1523.3))
+                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(1702.4))
+                .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
+                .setBrakingStrength(0.5)
+                .build();
+
+        scoreFromMid = follower.pathBuilder()
+                .addPath(new BezierLine(pickupMidIntake3, scorePose))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
+                .setHeadingConstraint(4)
+                .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
         goToEnd = follower.pathBuilder()
-
                 .addPath(new BezierLine(scorePose, endPose))
-
                 .setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading())
-
                 .build();
 
     }
 
     public void autonomousPathUpdate() {
-
         switch (pathState) {
-
             case 0:
-
                 follower.followPath(startPreload);
-
                 setPathState(1);
-
                 break;
-
             case 1:
-
                 // SHOOT SEQUENCE 1 START
-
                 if (!follower.isBusy()) {
-
                     follower.followPath(score1, true);
-
                     setPathState(2);
-
                 }
-
                 break;
-
             case 2:
-
                 if (!follower.isBusy()) {
-
                     if (shooter.ShooterAtTarget()) {
-
                         lever.leverUp();
-
                         actionTimer.resetTimer();
-
                         setPathState(3);
-
                     }
-
                 }
-
                 break;
-
             case 3:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
                     setPathState(4);
-
                 }
-
                 break;
-
             case 4:
-
                 sorter.setSorterTarget(179.2);
-
                 if (sorter.SorterAtTarget()) {
-
                     setPathState(5);
-
                 }
-
                 break;
-
             case 5:
-
                 // SHOOT SEQUENCE 2 START
-
                 if (shooter.ShooterAtTarget()) {
-
                     lever.leverUp();
-
                     actionTimer.resetTimer();
-
                     setPathState(6);
-
                 }
-
                 break;
-
             case 6:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
                     setPathState(7);
-
                 }
-
                 break;
-
             case 7:
-
                 sorter.setSorterTarget(358.4);
-
                 if (sorter.SorterAtTarget()) {
 
                     setPathState(8);
 
                 }
-
                 break;
-
             case 8:
-
                 // SHOOT SEQUENCE 3 START
-
                 if (shooter.ShooterAtTarget()) {
-
                     lever.leverUp();
-
                     actionTimer.resetTimer();
-
                     setPathState(9);
-
                 }
-
                 break;
-
             case 9:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
                     setPathState(10);
-
                 }
-
                 break;
-
             case 10:
-
+                // GOING TO INTAKE 1
                 sorter.setSorterTarget(448);
-
                 shooter.setCurTargetVelocity("0");
-
-                follower.followPath(alignToMid, true);
-
-                if (sorter.SorterAtTarget()) {
-
-                    actionTimer.resetTimer();
-
-                    setPathState(11);
-
-                }
-
-                break;
-
-            case 11:
-
-                if (!follower.isBusy()) {
-
-                    intake.intakeOn();
-
-                    follower.followPath(intakeMid, 0.3, true);
-
-                    setPathState(12);
-
-                }
-
-                break;
-
-            case 12:
-
-                if (!follower.isBusy()) {
-
-                    intake.intakeOff();
-
-                    shooter.setCurTargetVelocity("long");
-
-                    follower.followPath(scoreFromMid, true);
-
-                    setPathState(13);
-
-                }
-
-                break;
-
-            case 13:
-
-                if (!follower.isBusy()) {
-
-                    if (shooter.ShooterAtTarget()) {
-
-                        lever.leverUp();
-
-                        actionTimer.resetTimer();
-
-                        setPathState(14);
-
-                    }
-
-                }
-
-                break;
-
-            case 14:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
-                    lever.leverDown();
-
-                    actionTimer.resetTimer();
-
-                    setPathState(15);
-
-                }
-
-                break;
-
-            case 15:
-
-                sorter.setSorterTarget(985.6);
-
-                if (sorter.SorterAtTarget()) {
-
-                    setPathState(16);
-
-                }
-
-                break;
-
-            case 16:
-
-                if (shooter.ShooterAtTarget()) {
-
-                    lever.leverUp();
-
-                    actionTimer.resetTimer();
-
-                    setPathState(17);
-
-                }
-
-                break;
-
-            case 17:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
-                    lever.leverDown();
-
-                    actionTimer.resetTimer();
-
-                    setPathState(18);
-
-                }
-
-                break;
-
-            case 18:
-
-                sorter.setSorterTarget(1164.8);
-
-                if (sorter.SorterAtTarget()) {
-
-                    setPathState(19);
-
-                }
-
-                break;
-
-            case 19:
-
-                if (shooter.ShooterAtTarget()) {
-
-                    lever.leverUp();
-
-                    actionTimer.resetTimer();
-
-                    setPathState(20);
-
-                }
-
-                break;
-
-            case 20:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
-                    lever.leverDown();
-
-                    actionTimer.resetTimer();
-
-                    setPathState(21);
-
-                }
-
-                break;
-
-            case 21:
-
-                sorter.setSorterTarget(1344);
-
-                shooter.setCurTargetVelocity("0");
-
                 follower.followPath(alignToLow, true);
-
                 if (sorter.SorterAtTarget()) {
-
-                    actionTimer.resetTimer();
-
-                    setPathState(22);
-
+                    setPathState(11);
                 }
-
                 break;
-
-            case 22:
-
+            case 11:
                 if (!follower.isBusy()) {
-
                     intake.intakeOn();
-
-                    follower.followPath(intakeLow, 0.3, true);
-
-                    setPathState(23);
-
+                    follower.followPath(intakeLow, 0.32, true);
+                    setPathState(12);
                 }
-
                 break;
-
-            case 23:
-
+            case 12:
                 if (!follower.isBusy()) {
-
                     intake.intakeOff();
-
-                    shooter.setCurTargetVelocity("long");
-
+                    sorter.setSorterTarget(896);
                     follower.followPath(scoreFromLow, true);
-
-                    setPathState(24);
-
+                    setPathState(13);
                 }
-
                 break;
-
-            case 24:
-
+            case 13:
+                // SHOOTING SEQUENCE 1 (2nd time)
                 if (!follower.isBusy()) {
-
                     if (shooter.ShooterAtTarget()) {
-
                         lever.leverUp();
-
                         actionTimer.resetTimer();
-
-                        setPathState(25);
-
+                        setPathState(14);
                     }
-
                 }
-
                 break;
-
-            case 25:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+            case 14:
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
-                    setPathState(26);
-
+                    setPathState(15);
                 }
-
                 break;
-
-            case 26:
-
-                sorter.setSorterTarget(1523.2);
-
+            case 15:
+                sorter.setSorterTarget(1075.2);
                 if (sorter.SorterAtTarget()) {
-
-                    setPathState(27);
-
+                    setPathState(16);
                 }
-
                 break;
-
-            case 27:
-
+            case 16:
+                // SHOOT SEQUENCE 2 START (2nd time)
                 if (shooter.ShooterAtTarget()) {
-
                     lever.leverUp();
-
                     actionTimer.resetTimer();
-
-                    setPathState(28);
-
+                    setPathState(17);
                 }
-
                 break;
-
-            case 28:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+            case 17:
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
-                    setPathState(29);
-
+                    setPathState(18);
                 }
-
                 break;
-
+            case 18:
+                sorter.setSorterTarget(1254.4);
+                if (sorter.SorterAtTarget()) {
+                    setPathState(19);
+                }
+                break;
+            case 19:
+                // SHOOT SEQUENCE 3 START (2nd time)
+                if (shooter.ShooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(20);
+                }
+                break;
+            case 20:
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
+                    setPathState(21);
+                }
+                break;
+            case 21:
+                // GOING TO INTAKE 2
+                sorter.setSorterTarget(1344);
+                shooter.setCurTargetVelocity("0");
+                follower.followPath(alignToMid, true);
+                if (sorter.SorterAtTarget()) {
+                    setPathState(22);
+                }
+                break;
+            case 22:
+                if (!follower.isBusy()) {
+                    intake.intakeOn();
+                    follower.followPath(intakeMid, 0.32, true);
+                    setPathState(23);
+                }
+                break;
+            case 23:
+                if (!follower.isBusy()) {
+                    intake.intakeOff();
+                    sorter.setSorterTarget(1792);
+                    follower.followPath(scoreFromMid, true);
+                    setPathState(24);
+                }
+                break;
+            case 24:
+                if (!follower.isBusy()) {
+                    if (shooter.ShooterAtTarget()) {
+                        lever.leverUp();
+                        actionTimer.resetTimer();
+                        setPathState(25);
+                    }
+                }
+                break;
+            case 25:
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
+                    setPathState(26);
+                }
+                break;
+            case 26:
+                sorter.setSorterTarget(1971.2);
+                if (sorter.SorterAtTarget()) {
+                    setPathState(27);
+                }
+                break;
+            case 27:
+                // SHOOT SEQUENCE 2 START
+                if (shooter.ShooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(28);
+                }
+                break;
+            case 28:
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
+                    setPathState(29);
+                }
+                break;
             case 29:
-
-                sorter.setSorterTarget(1702.4);
-
+                sorter.setSorterTarget(2150.4);
                 if (sorter.SorterAtTarget()) {
 
                     setPathState(30);
 
                 }
-
                 break;
-
             case 30:
-
+                // SHOOT SEQUENCE 3 START
                 if (shooter.ShooterAtTarget()) {
-
                     lever.leverUp();
-
                     actionTimer.resetTimer();
-
                     setPathState(31);
-
                 }
-
                 break;
-
             case 31:
-
-                if (actionTimer.getElapsedTimeSeconds() > 0.2) {
-
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
-
                     actionTimer.resetTimer();
-
                     setPathState(32);
-
                 }
-
                 break;
-
-            case 32:
-
-                sorter.setSorterTarget(1881.6);
-
-                shooter.setCurTargetVelocity("0");
-
-                if (sorter.SorterAtTarget()) {
-
-                    follower.followPath(goToEnd, true);
-
-                    setPathState(33);
-
-                }
-
-                break;
-
-            case 33:
-
-                // End state, no actions
-
-                break;
-
         }
 
     }
@@ -670,8 +390,6 @@ public class BlueAutoREMODELEDParametric extends OpMode {
         sorter.PIDFSorterLoop();
 
         pitch.pitchDown();
-
-        turret.PIDFTurretLoop();
 
         // These loop the movements of the robot, these must be called continuously in order to work
 

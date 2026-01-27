@@ -145,7 +145,7 @@ public class Turret {
         YawPitchRollAngles orientation = turretImuTurret.getRobotYawPitchRollAngles();
         double currentYawDeg = orientation.getYaw(AngleUnit.DEGREES);
 
-        if ((Math.abs(currentYawDeg) - targetAngleTurret) <= 5) {
+        if ((Math.abs(currentYawDeg) - targetAngleTurret) <= 4) {
             return true;
         } else {
             return false;

@@ -10,9 +10,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,8 @@ public class SorterTest extends OpMode {
     HuskyLens huskyLens2;
     Deadline rateLimit;
 
+    DistanceSensor distanceSensor2;
+
     public static double integralSum = 0;
     private double p = 0.0029;
     private double i = 0.0;
@@ -59,8 +63,17 @@ public class SorterTest extends OpMode {
     ElapsedTime timer = new ElapsedTime();
     public double lastError = 0;
 
+
+    enum State {
+        ONE,
+        TWO,
+        NONE
+    }
+    State state = State.NONE;
+
     @Override
     public void init() {
+
         controller = new PIDController(p,i,d);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -82,6 +95,7 @@ public class SorterTest extends OpMode {
         huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         leverServo = hardwareMap.get(Servo.class,"leverServo");
+        distanceSensor2 = hardwareMap.get(DistanceSensor.class, "distanceSensor2");
 
         rotationMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -121,6 +135,28 @@ public class SorterTest extends OpMode {
 
         if (gamepad1.aWasPressed()) {
             target += INCREMENT;
+        }
+
+        if (gamepad1.bWasPressed()) {
+            state = State.ONE;
+
+            switch (state) {
+                case ONE:
+                    sorterMotor.setPower(0.8);
+                    if (distanceSensor2.getDistance(DistanceUnit.INCH) >= 1.1 && distanceSensor2.getDistance(DistanceUnit.INCH) >= 2) {
+                        timer.reset();
+                        state = State.TWO;
+                    }
+                    break;
+                case TWO:
+                    sorterMotor.setPower(0);
+                    sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    state = State.NONE;
+                    break;
+
+            }
+
         }
 
 

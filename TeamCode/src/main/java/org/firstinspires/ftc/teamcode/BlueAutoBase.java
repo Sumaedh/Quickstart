@@ -6,13 +6,12 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous
-public class BlueAutoREMODELED extends OpMode {
+
+public class BlueAutoBase extends OpMode {
 
     // HEIGHT: 17.25 INCHES
     // WIDTH: 17.75 inches
@@ -49,7 +48,6 @@ public class BlueAutoREMODELED extends OpMode {
 
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, shooter.setCurTargetVelocityParametric("long"))
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -96,7 +94,7 @@ public class BlueAutoREMODELED extends OpMode {
             case 1:
                 // SHOOT SEQUENCE 1 START
                 if (!follower.isBusy()) {
-                    // shooter.setCurTargetVelocity("long");
+                    shooter.setCurTargetVelocity("long");
                     follower.followPath(score1, true);
                     setPathState(2);
                 }

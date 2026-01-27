@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -12,23 +10,21 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP WITH TURRET")
-public class TeleopNewestTurretTest extends OpMode {
+@TeleOp(name = "REAL TELEOP (distance sensor")
+public class TeleopNewestDistanceSensor extends OpMode {
 
-
-    // Shooting / sorter / drive (existing) rfuruiwfe
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
@@ -36,6 +32,8 @@ public class TeleopNewestTurretTest extends OpMode {
 
     private DcMotor sorterMotor;
     private PIDController sorterController;
+
+    DistanceSensor distanceSensor;
 
     private double pSorting = 0.0029;
     private double iSorting = 0.0;
@@ -53,6 +51,7 @@ public class TeleopNewestTurretTest extends OpMode {
 
     DcMotor intakeMotor;
     Servo pitchServo;
+    DcMotor rotationMotor;
     DcMotorEx shootingMotor;
     Servo leverServo;
     ColorSensor colorSensor;
@@ -63,35 +62,8 @@ public class TeleopNewestTurretTest extends OpMode {
     DcMotor frontRight;
     DcMotor backLeft;
     DcMotor backRight;
+    IMU turretImu;
     ElapsedTime timer = new ElapsedTime();
-
-    // ---------- Turret PID/IMU variables (appended 'Turret') ----------
-    private PIDController controllerTurret;
-
-    public static double pTurret = 0.01;
-    public static double iTurret = 0.0;
-    public static double dTurret = 0.0004;
-    public static double kFFTurret = 0.042;
-    public static double targetAngleTurret = 0;
-
-    // IMU and yaw unwrap state (turret)
-    IMU turretImuTurret;
-    private double lastYawDegTurret = 0.0;
-    private double unwrappedYawDegTurret = 0.0;
-    private double yawOffsetDegTurret = 0.0;
-
-    // turret motor (renamed)
-    DcMotor rotationMotorTurret;
-
-    // encoder clip limits (turret) — names end with Turret
-    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 780;
-    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2975;
-
-    // wrap override state (turret)
-    private boolean wrapOverrideActiveTurret = false;
-    private boolean stuckAtHighLimitTurret = false;
-
-    // Utility drive functions (unchanged)
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
         frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
@@ -110,54 +82,45 @@ public class TeleopNewestTurretTest extends OpMode {
 
     @Override
     public void init() {
-        // telemetry to dashboard + driver station
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        // sorter
         sorterController = new PIDController(pSorting,iSorting,dSorting);
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         sorterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        // basic hardware
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         pitchServo = hardwareMap.get(Servo.class,"pitchServo");
-        rotationMotorTurret = hardwareMap.get(DcMotor.class, "rotationMotor"); // turret motor hw name unchanged
+        rotationMotor = hardwareMap.get(DcMotor.class, "rotationMotor");
         shootingMotor = hardwareMap.get(DcMotorEx.class, "shootingMotor");
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
         huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
+        sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         leverServo = hardwareMap.get(Servo.class,"leverServo");
-        turretImuTurret = hardwareMap.get(IMU.class, "turretImu");
+        turretImu = hardwareMap.get(IMU.class, "turretImu");
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
 
-        // shooting PIDF
         PIDFCoefficients pidfShooting =
                 new PIDFCoefficients(pShooting, 0, 0, fShooting);
         shootingMotor.setPIDFCoefficients(
                 DcMotor.RunMode.RUN_USING_ENCODER, pidfShooting
         );
 
-        // Use the same RevHub orientation as in the original turret opmode
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
         );
 
-        turretImuTurret.initialize(new IMU.Parameters(orientationOnRobot));
-        turretImuTurret.resetYaw();
+        turretImu.initialize(new IMU.Parameters(orientationOnRobot));
 
-        YawPitchRollAngles initAngles = turretImuTurret.getRobotYawPitchRollAngles();
-        lastYawDegTurret = initAngles.getYaw(AngleUnit.DEGREES);
-        unwrappedYawDegTurret = lastYawDegTurret;
-        yawOffsetDegTurret = lastYawDegTurret;
+        pitchServo.setDirection(Servo.Direction.REVERSE);
+        pitchServo.setPosition(0);
 
-        controllerTurret = new PIDController(pTurret, iTurret, dTurret);
+        shootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        // turret motor settings mirror the original turret opmode
-        rotationMotorTurret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rotationMotorTurret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rotationMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // rest of teleop hardware/setup
         rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
         rateLimit.expire();
         leverServo.setPosition(0);
@@ -185,18 +148,13 @@ public class TeleopNewestTurretTest extends OpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
-
         pitchServo.setDirection(Servo.Direction.REVERSE);
         pitchServo.setPosition(0);
 
         sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        shootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
         telemetry.addData("status", "initialized");
-        telemetry.update();
     }
 
     public void start() {
@@ -206,29 +164,34 @@ public class TeleopNewestTurretTest extends OpMode {
 
     @Override
     public void loop() {
-        // PITCH (unchanged)
+
+        // PITCH
         pitchServo.setPosition(0.42);
 
-        // DRIVE (unchanged)
+
+        // DRIVE
         if (gamepad1.left_trigger > 0.75) {
             driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
-        // INTAKE (unchanged)
+        // INTAKE
         if (gamepad1.a) intakeMotor.setPower(1.0);
         if (gamepad1.b) intakeMotor.setPower(0);
         if (gamepad1.x) intakeMotor.setPower(-1.0);
 
-        // LEVER (unchanged)
+
+        // LEVER
         if (gamepad2.dpad_up) leverServo.setPosition(0.2);
         else leverServo.setPosition(0);
 
-        // SORTER (unchanged)
+
+        // SORTER
         if (gamepad2.aWasPressed()) {
             target += INCREMENT;
         }
+
 
         sorterController.setPID(pSorting,iSorting,dSorting);
         double currentPos = sorterMotor.getCurrentPosition();
@@ -238,7 +201,7 @@ public class TeleopNewestTurretTest extends OpMode {
 
         sorterMotor.setPower(pidOutput + staticFF);
 
-        // SHOOTING (unchanged)
+        // SHOOTING
         boolean shooterEnabled1 = gamepad2.left_trigger > 0.75;
         boolean shooterEnabled2 = gamepad2.right_trigger > 0.75;
 
@@ -260,69 +223,30 @@ public class TeleopNewestTurretTest extends OpMode {
         PIDFCoefficients newPidf = new PIDFCoefficients(pShooting, 0, 0, fShooting);
         shootingMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, newPidf);
         shootingMotor.setVelocity(curTargetVelocity);
+    }
 
-        // ---------- Turret PID + IMU integration (exactly as original turret opmode) ----------
-        controllerTurret.setPID(pTurret, iTurret, dTurret);
+    public void distanceSensorAutomation() {
+        double firstTime = timer.milliseconds();
+        double[] SorterPositions = {target, target + 89.6, target + (89.6 * 2), target + (89.6 * 3), target + (89.6 * 4), target + (89.6 * 5)};
+        for (int i = 0; i < SorterPositions.length; i++) {
+            boolean ballPresent = false;
+            boolean moveOn = false;
+            target = SorterPositions[i];
+            double currentTime = timer.milliseconds();
 
-        YawPitchRollAngles orientation = turretImuTurret.getRobotYawPitchRollAngles();
-        double currentYawDeg = orientation.getYaw(AngleUnit.DEGREES);
-
-        double delta = currentYawDeg - lastYawDegTurret;
-        if (delta > 180.0) delta -= 360.0;
-        else if (delta < -180.0) delta += 360.0;
-
-        unwrappedYawDegTurret += delta;
-        lastYawDegTurret = currentYawDeg;
-
-        double currentAngleDegTurret = unwrappedYawDegTurret - yawOffsetDegTurret;
-        double currentTargetDegTurret = (targetAngleTurret > 180.0) ? targetAngleTurret - 360.0 : targetAngleTurret;
-        double errorTurret = currentTargetDegTurret - currentAngleDegTurret;
-
-        double pidOutputTurret = controllerTurret.calculate(currentAngleDegTurret, currentTargetDegTurret);
-        double feedforwardTurret = Math.copySign(kFFTurret, errorTurret);
-        double motorPowerTurret = pidOutputTurret + feedforwardTurret;
-
-        motorPowerTurret = Math.max(-1.0, Math.min(1.0, motorPowerTurret));
-
-        int turretEnc = rotationMotorTurret.getCurrentPosition();
-
-        boolean atHighLimitTurret = turretEnc >= TURRET_ENCODER_HIGH_LIMIT_Turret;
-        boolean atLowLimitTurret  = turretEnc <= TURRET_ENCODER_LOW_LIMIT_Turret;
-
-        // HARD CLAMP
-        if ((atHighLimitTurret && motorPowerTurret > 0.0) ||
-                (atLowLimitTurret  && motorPowerTurret < 0.0)) {
-            motorPowerTurret = 0.0;
-        }
-
-        // ENTER WRAP OVERRIDE
-        if (!wrapOverrideActiveTurret &&
-                motorPowerTurret == 0.0 &&
-                Math.abs(errorTurret) > 35 &&
-                (atHighLimitTurret || atLowLimitTurret)) {
-
-            wrapOverrideActiveTurret = true;
-            stuckAtHighLimitTurret = atHighLimitTurret;
-        }
-
-        // WRAP OVERRIDE BEHAVIOR
-        if (wrapOverrideActiveTurret) {
-            if (Math.abs(errorTurret) < 15) {
-                wrapOverrideActiveTurret = false;
+            if (distanceSensor.getDistance(DistanceUnit.INCH) <= 1) {
+                ballPresent = true;
             } else {
-                motorPowerTurret = stuckAtHighLimitTurret ? -0.8 : 0.8;
+                break;
+            }
+
+            if (((currentTime - firstTime) / (i + 1)) >= 0.4) {
+                moveOn = true;
+            }
+
+            if (moveOn) {
+                continue;
             }
         }
-
-        rotationMotorTurret.setPower(motorPowerTurret);
-
-        // Telemetry for turret + some teleop info
-        telemetry.addData("Turret Angle (deg)", currentAngleDegTurret);
-        telemetry.addData("Target (deg)", currentTargetDegTurret);
-        telemetry.addData("Error (deg)", errorTurret);
-        telemetry.addData("ticks", turretEnc);
-        telemetry.addData("Wrap Override", wrapOverrideActiveTurret);
-
-        telemetry.update();
     }
 }
