@@ -67,10 +67,10 @@ public class TeleopNewestWithTurret extends OpMode {
     // ---------- Turret PID/IMU variables (appended 'Turret') ----------
     private PIDController controllerTurret;
 
-    public static double pTurret = 0.01;
-    public static double iTurret = 0.0;
+    public static double pTurret = 0.03;
+    public static double iTurret = 0.001;
     public static double dTurret = 0.0004;
-    public static double kFFTurret = 0.042;
+    public static double kFFTurret = 0.045;
     public static double targetAngleTurret = 0;
 
     // IMU and yaw unwrap state (turret)
@@ -83,8 +83,8 @@ public class TeleopNewestWithTurret extends OpMode {
     DcMotor rotationMotorTurret;
 
     // encoder clip limits (turret) — names end with Turret
-    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1047;
-    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -2771;
+    public static int TURRET_ENCODER_HIGH_LIMIT_Turret = 1000;
+    public static int TURRET_ENCODER_LOW_LIMIT_Turret  = -1000;
 
     // wrap override state (turret)
     private boolean wrapOverrideActiveTurret = false;
