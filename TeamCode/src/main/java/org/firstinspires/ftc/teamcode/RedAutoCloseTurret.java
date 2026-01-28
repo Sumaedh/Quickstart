@@ -71,6 +71,7 @@ public class RedAutoCloseTurret extends OpMode {
 
         alignToLow = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, pickupLowPose))
+                .setBrakingStrength(1)
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickupLowPose.getHeading())
                 .build();
 
@@ -195,7 +196,7 @@ public class RedAutoCloseTurret extends OpMode {
                 // GOING TO INTAKE 1
                 sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0");
-                follower.followPath(alignToLow, true);
+                follower.followPath(alignToLow, 1, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(11);
                 }
