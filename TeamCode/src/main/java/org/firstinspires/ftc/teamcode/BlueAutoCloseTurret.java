@@ -65,7 +65,7 @@ public class BlueAutoCloseTurret extends OpMode {
 
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("short"))
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -84,7 +84,7 @@ public class BlueAutoCloseTurret extends OpMode {
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short"))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -104,7 +104,7 @@ public class BlueAutoCloseTurret extends OpMode {
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short"))
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
