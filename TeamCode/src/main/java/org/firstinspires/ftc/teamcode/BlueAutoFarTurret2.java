@@ -14,16 +14,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @Autonomous
 public class BlueAutoFarTurret2 extends OpMode {
 
-
-    // HEIGHT: 17.25 inches
-    // WIDTH:  17.75 inches
-
-
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    // Subsystems
     private final Intake intake = new Intake();
     private final Lever lever = new Lever();
     private final Pitch pitch = new Pitch();
@@ -31,59 +25,57 @@ public class BlueAutoFarTurret2 extends OpMode {
     private final Sorter sorter = new Sorter();
     private final Turret turret = new Turret();
 
-
-    // Poses
     private final Pose startPose        = new Pose(56.625, 8.75, Math.toRadians(90));
     private final Pose secondPose       = new Pose(55.6108, 14, Math.toRadians(90));
     private final Pose scorePose        = new Pose(59.535, 14, Math.toRadians(90));
 
-    private final Pose pickupLowPose    = new Pose(48, 36, Math.toRadians(180));
-    private final Pose pickupLowIntake1 = new Pose(37.622, 36, Math.toRadians(180));
-    private final Pose pickupLowIntake2 = new Pose(32.292, 36, Math.toRadians(180));
-    private final Pose pickupLowIntake3 = new Pose(24, 36, Math.toRadians(180));
+    private final Pose pickupLowPose        = new Pose(48, 36, Math.toRadians(180));
+    private final Pose pickupLowIntake3     = new Pose(22, 36, Math.toRadians(180));
 
-    private final Pose pickupMidPose    = new Pose(48, 36 + 24, Math.toRadians(180));
-    private final Pose pickupMidIntake1 = new Pose(37.622, 36 + 24, Math.toRadians(180));
-    private final Pose pickupMidIntake2 = new Pose(32.292, 36 + 24, Math.toRadians(180));
-    private final Pose pickupMidIntake3 = new Pose(22.5, 36 + 24, Math.toRadians(180));
+    private final Pose pickupMidPose        = new Pose(48, 60, Math.toRadians(180));
+    private final Pose pickupMidIntake3     = new Pose(21, 60, Math.toRadians(180));
 
     private final Pose endPose          = new Pose(60.362, 44.038, Math.toRadians(90));
 
-
-    // Paths / PathChains
     private Path startPreload;
     private PathChain score1;
-    private PathChain alignToMid;
-    private PathChain intakeMid;
-    private PathChain scoreFromMid;
     private PathChain alignToLow;
     private PathChain intakeLow;
     private PathChain scoreFromLow;
+    private PathChain alignToMid;
+    private PathChain intakeMid;
+    private PathChain scoreFromMid;
     private PathChain goToEnd;
 
+    private double hSecondToScore;
+    private double hLowToScore;
+    private double hMidToScore;
 
-    // Helps Headings
+    private double normAngle(double angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+    }
+
+    private double turretHeadingFromFieldHeading(double fieldHeading) {
+        double reversed = normAngle(fieldHeading + Math.PI);
+        double offset = -Math.PI / 2;
+        return normAngle(reversed + offset);
+    }
 
     private double headingAlong(Pose from, Pose to) {
         return Math.atan2(to.getY() - from.getY(), to.getX() - from.getX());
     }
 
-
-    // Path builder
     public void buildPaths() {
 
         double hStartToSecond = headingAlong(startPose, secondPose);
         startPreload = new Path(new BezierLine(startPose, secondPose));
         startPreload.setConstantHeadingInterpolation(hStartToSecond);
 
-
-        double hSecondToScoreMove = headingAlong(secondPose, scorePose);
+        hSecondToScore = headingAlong(secondPose, scorePose);
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
-                .setLinearHeadingInterpolation(hSecondToScoreMove, scorePose.getHeading())
+                .setLinearHeadingInterpolation(hSecondToScore, scorePose.getHeading())
                 .build();
-
 
         double hScoreToLow = headingAlong(scorePose, pickupLowPose);
         alignToLow = follower.pathBuilder()
@@ -91,24 +83,18 @@ public class BlueAutoFarTurret2 extends OpMode {
                 .setLinearHeadingInterpolation(scorePose.getHeading(), hScoreToLow)
                 .build();
 
-
         double hLowIntake = headingAlong(pickupLowPose, pickupLowIntake3);
         intakeLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowPose, pickupLowIntake3))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(806.4))
                 .setConstantHeadingInterpolation(hLowIntake)
-                .setBrakingStrength(0.5)
+                .setBrakingStrength(0.4)
                 .build();
 
-
-        double hLowToScoreMove = headingAlong(pickupLowIntake3, scorePose);
+        hLowToScore = headingAlong(pickupLowIntake3, scorePose);
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
-                .setLinearHeadingInterpolation(hLowToScoreMove, scorePose.getHeading())
+                .setLinearHeadingInterpolation(hLowToScore, scorePose.getHeading())
                 .build();
-
 
         double hScoreToMid = headingAlong(scorePose, pickupMidPose);
         alignToMid = follower.pathBuilder()
@@ -116,34 +102,26 @@ public class BlueAutoFarTurret2 extends OpMode {
                 .setLinearHeadingInterpolation(scorePose.getHeading(), hScoreToMid)
                 .build();
 
-
         double hMidIntake = headingAlong(pickupMidPose, pickupMidIntake3);
         intakeMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(1702.4))
                 .setConstantHeadingInterpolation(hMidIntake)
-                .setBrakingStrength(0.5)
+                .setBrakingStrength(0.4)
                 .build();
 
-
-        double hMidToScoreMove = headingAlong(pickupMidIntake3, scorePose);
+        hMidToScore = headingAlong(pickupMidIntake3, scorePose);
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
-                .setLinearHeadingInterpolation(hMidToScoreMove, scorePose.getHeading())
+                .setLinearHeadingInterpolation(hMidToScore, scorePose.getHeading())
                 .build();
 
-
-        double hScoreToEndMove = headingAlong(scorePose, endPose);
+        double hScoreToEnd = headingAlong(scorePose, endPose);
         goToEnd = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, endPose))
-                .setLinearHeadingInterpolation(hScoreToEndMove, endPose.getHeading())
+                .setLinearHeadingInterpolation(hScoreToEnd, endPose.getHeading())
                 .build();
     }
 
-
-    // State helpers
     private void setPathState(int newState) {
         pathState = newState;
         pathTimer.resetTimer();
@@ -153,8 +131,6 @@ public class BlueAutoFarTurret2 extends OpMode {
         return actionTimer.getElapsedTimeSeconds() > waitSeconds;
     }
 
-
-    // Main autonomous state machine
     public void autonomousPathUpdate() {
         switch (pathState) {
 
@@ -165,6 +141,8 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 1:
                 if (!follower.isBusy()) {
+                    shooter.setCurTargetVelocity("long");
+                    turret.setTurretTarget(turretHeadingFromFieldHeading(hSecondToScore));
                     follower.followPath(score1, true);
                     setPathState(2);
                 }
@@ -172,6 +150,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 2:
                 if (!follower.isBusy()) {
+                    turret.setTurretTarget(turretHeadingFromFieldHeading(scorePose.getHeading()));
                     if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
@@ -190,9 +169,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 4:
                 sorter.setSorterTarget(179.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(5);
-                }
+                if (sorter.SorterAtTarget()) setPathState(5);
                 break;
 
             case 5:
@@ -213,9 +190,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 7:
                 sorter.setSorterTarget(358.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(8);
-                }
+                if (sorter.SorterAtTarget()) setPathState(8);
                 break;
 
             case 8:
@@ -238,9 +213,7 @@ public class BlueAutoFarTurret2 extends OpMode {
                 sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0");
                 follower.followPath(alignToLow, true);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(11);
-                }
+                if (sorter.SorterAtTarget()) setPathState(11);
                 break;
 
             case 11:
@@ -255,6 +228,13 @@ public class BlueAutoFarTurret2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.intakeOff();
                     sorter.setSorterTarget(896);
+
+                    // ⭐ FIRST REVERSAL — LOW STACK
+                    shooter.setCurTargetVelocity("long");
+                    turret.setTurretTarget(
+                            turretHeadingFromFieldHeading(hLowToScore + Math.PI)
+                    );
+
                     follower.followPath(scoreFromLow, true);
                     setPathState(13);
                 }
@@ -262,6 +242,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 13:
                 if (!follower.isBusy()) {
+                    turret.setTurretTarget(turretHeadingFromFieldHeading(scorePose.getHeading()));
                     if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
@@ -280,9 +261,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 15:
                 sorter.setSorterTarget(1075.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(16);
-                }
+                if (sorter.SorterAtTarget()) setPathState(16);
                 break;
 
             case 16:
@@ -303,9 +282,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 18:
                 sorter.setSorterTarget(1254.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(19);
-                }
+                if (sorter.SorterAtTarget()) setPathState(19);
                 break;
 
             case 19:
@@ -328,9 +305,7 @@ public class BlueAutoFarTurret2 extends OpMode {
                 sorter.setSorterTarget(1344);
                 shooter.setCurTargetVelocity("0");
                 follower.followPath(alignToMid, true);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(22);
-                }
+                if (sorter.SorterAtTarget()) setPathState(22);
                 break;
 
             case 22:
@@ -345,6 +320,13 @@ public class BlueAutoFarTurret2 extends OpMode {
                 if (!follower.isBusy()) {
                     intake.intakeOff();
                     sorter.setSorterTarget(1792);
+
+                    // ⭐ SECOND REVERSAL — MID STACK
+                    shooter.setCurTargetVelocity("long");
+                    turret.setTurretTarget(
+                            turretHeadingFromFieldHeading(hMidToScore + Math.PI)
+                    );
+
                     follower.followPath(scoreFromMid, true);
                     setPathState(24);
                 }
@@ -352,6 +334,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 24:
                 if (!follower.isBusy()) {
+                    turret.setTurretTarget(turretHeadingFromFieldHeading(scorePose.getHeading()));
                     if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
@@ -370,9 +353,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 26:
                 sorter.setSorterTarget(1971.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(27);
-                }
+                if (sorter.SorterAtTarget()) setPathState(27);
                 break;
 
             case 27:
@@ -393,9 +374,7 @@ public class BlueAutoFarTurret2 extends OpMode {
 
             case 29:
                 sorter.setSorterTarget(2150.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(30);
-                }
+                if (sorter.SorterAtTarget()) setPathState(30);
                 break;
 
             case 30:
@@ -415,13 +394,10 @@ public class BlueAutoFarTurret2 extends OpMode {
                 break;
 
             default:
-                //
                 break;
         }
     }
 
-
-    // FTC OpMode lifecycle
     @Override
     public void init() {
         pathTimer = new Timer();
@@ -445,11 +421,6 @@ public class BlueAutoFarTurret2 extends OpMode {
     }
 
     @Override
-    public void init_loop() {
-        // No pre-start looping logic
-    }
-
-    @Override
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
@@ -470,10 +441,5 @@ public class BlueAutoFarTurret2 extends OpMode {
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
         telemetry.update();
-    }
-
-    @Override
-    public void stop() {
-        // Add stop logic if needed
     }
 }
