@@ -65,7 +65,7 @@ public class BlueAutoFarSafe extends OpMode {
 
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("custom", 1630))
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
                 .build();
@@ -85,7 +85,7 @@ public class BlueAutoFarSafe extends OpMode {
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1630))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -105,7 +105,7 @@ public class BlueAutoFarSafe extends OpMode {
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1630))
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
@@ -193,7 +193,7 @@ public class BlueAutoFarSafe extends OpMode {
             case 10:
                 // GOING TO INTAKE 1
                 sorter.setSorterTarget(448);
-                shooter.setCurTargetVelocity("0");
+                shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLow, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(11);
@@ -276,7 +276,7 @@ public class BlueAutoFarSafe extends OpMode {
             case 21:
                 // GOING TO INTAKE 2
                 sorter.setSorterTarget(1344);
-                shooter.setCurTargetVelocity("0");
+                shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(22);

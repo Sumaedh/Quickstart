@@ -11,17 +11,17 @@ public class Sorter {
 
     private PIDController sorterController;
 
-    private double pSorting = 0.0029;
+    private double pSorting = 0.0045;
     private double iSorting = 0.0;
-    private double dSorting = 0.00017;
+    private double dSorting = 0.00018;
 
-    public static double kSSorting = 0.02;
+    public static double kSSorting = 0.04;
 
     private static final double TICKS_PER_REV = 537.6;
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 
-    public double SORTER_TOLERANCE = 4;
+    public double SORTER_TOLERANCE = 2.25;
 
     public double target = 0;
 

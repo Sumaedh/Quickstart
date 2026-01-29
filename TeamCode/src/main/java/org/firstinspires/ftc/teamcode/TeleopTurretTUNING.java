@@ -277,7 +277,7 @@ public class TeleopTurretTUNING extends OpMode {
         double currentTargetDegTurret = (targetAngleTurret > 180.0) ? targetAngleTurret - 360.0 : targetAngleTurret;
         double errorTurret = currentTargetDegTurret - currentAngleDegTurret;
 
-        double pidOutputTurret = controllerTurret.calculate(currentAngleDegTurret, currentTargetDegTurret);
+        double pidOutputTurret = controllerTurret.calculate(currentYawDeg, currentTargetDegTurret);
         double feedforwardTurret = Math.copySign(kFFTurret, errorTurret);
         double motorPowerTurret = pidOutputTurret + feedforwardTurret;
 

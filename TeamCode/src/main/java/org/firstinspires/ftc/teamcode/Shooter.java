@@ -9,7 +9,7 @@ public class Shooter {
     DcMotorEx shootingMotor;
 
     public double fShooting = 15;
-    public double pShooting = 250;
+    public double pShooting = 400;
     public double curTargetVelocity = 0;
 
     public double LONG_VELOCITY = 1680;
@@ -30,28 +30,28 @@ public class Shooter {
         shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
-    public void setCurTargetVelocityParametric(String distance) {
+    public void setCurTargetVelocityParametric(String distance, double custom) {
         if (distance == "long") {
             curTargetVelocity = LONG_VELOCITY;
         } else if (distance == "short") {
             curTargetVelocity = SHORT_VELOCITY;
         } else if (distance == "0") {
             curTargetVelocity = 0;
-        } else {
-            curTargetVelocity = 0;
-        }
+        } else if (custom != 0 && distance == "custom"){
+        curTargetVelocity = custom;
+    }
     }
 
 
-    public void setCurTargetVelocity(String distance) {
+    public void setCurTargetVelocity(String distance, double custom) {
         if (distance == "long") {
             curTargetVelocity = LONG_VELOCITY;
         } else if (distance == "short") {
             curTargetVelocity = SHORT_VELOCITY;
         } else if (distance == "0") {
             curTargetVelocity = 0;
-        } else {
-            curTargetVelocity = 0;
+        } else if (custom != 0 && distance == "custom"){
+            curTargetVelocity = custom;
         }
     }
 

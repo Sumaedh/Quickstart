@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+/*
 @Autonomous
 public class RedAutoFarTurret2 extends OpMode {
 
@@ -427,3 +428,4 @@ public class RedAutoFarTurret2 extends OpMode {
     @Override
     public void stop() {}
 }
+ */

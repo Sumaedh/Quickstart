@@ -65,7 +65,7 @@ public class RedAutoCloseTurret extends OpMode {
 
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("short"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("short", 0))
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -85,7 +85,7 @@ public class RedAutoCloseTurret extends OpMode {
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short", 0))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -105,7 +105,7 @@ public class RedAutoCloseTurret extends OpMode {
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short", 0))
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -195,7 +195,7 @@ public class RedAutoCloseTurret extends OpMode {
             case 10:
                 // GOING TO INTAKE 1
                 sorter.setSorterTarget(448);
-                shooter.setCurTargetVelocity("0");
+                shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLow, 1, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(11);
@@ -278,7 +278,7 @@ public class RedAutoCloseTurret extends OpMode {
             case 21:
                 // GOING TO INTAKE 2
                 sorter.setSorterTarget(1344);
-                shooter.setCurTargetVelocity("0");
+                shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(22);

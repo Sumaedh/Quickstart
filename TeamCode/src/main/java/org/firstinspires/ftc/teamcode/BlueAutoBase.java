@@ -94,7 +94,7 @@ public class BlueAutoBase extends OpMode {
             case 1:
                 // SHOOT SEQUENCE 1 START
                 if (!follower.isBusy()) {
-                    shooter.setCurTargetVelocity("long");
+                    shooter.setCurTargetVelocity("custom", 1630);
                     follower.followPath(score1, true);
                     setPathState(2);
                 }
@@ -161,7 +161,7 @@ public class BlueAutoBase extends OpMode {
                 break;
             case 10:
                 sorter.setSorterTarget(448);
-                shooter.setCurTargetVelocity("0");
+                shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToBalls, true);
                 if (sorter.SorterAtTarget()) {
                     actionTimer.resetTimer();

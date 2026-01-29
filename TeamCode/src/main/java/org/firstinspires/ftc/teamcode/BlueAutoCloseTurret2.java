@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+/*
 @Autonomous
 public class BlueAutoCloseTurret2 extends OpMode {
 
@@ -460,3 +461,4 @@ public class BlueAutoCloseTurret2 extends OpMode {
     @Override
     public void stop() { }
 }
+ */
