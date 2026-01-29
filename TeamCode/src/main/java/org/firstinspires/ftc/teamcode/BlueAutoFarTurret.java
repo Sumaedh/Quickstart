@@ -46,10 +46,10 @@ public class BlueAutoFarTurret extends OpMode {
     private final Pose pickupLowIntake2 = new Pose(32.292, 36, Math.toRadians(180));
     private final Pose pickupLowIntake3 = new Pose(24, 36, Math.toRadians(180));
 
-    private final Pose pickupMidPose = new Pose(44, 36 +24, Math.toRadians(180));
+    private final Pose pickupMidPose = new Pose(48, 36 +24, Math.toRadians(180));
     private final Pose pickupMidIntake1 = new Pose(37.622, 36 + 24, Math.toRadians(180));
     private final Pose pickupMidIntake2 = new Pose(32.292, 36 + 24, Math.toRadians(180));
-    private final Pose pickupMidIntake3 = new Pose(24, 36 + 24, Math.toRadians(180));
+    private final Pose pickupMidIntake3 = new Pose(22.5, 36 + 24, Math.toRadians(180));
 
     private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90));
 
@@ -203,7 +203,7 @@ public class BlueAutoFarTurret extends OpMode {
             case 11:
                 if (!follower.isBusy()) {
                     intake.intakeOn();
-                    follower.followPath(intakeLow, 0.32, true);
+                    follower.followPath(intakeLow, 0.35, true);
                     setPathState(12);
                 }
                 break;
@@ -286,7 +286,7 @@ public class BlueAutoFarTurret extends OpMode {
             case 22:
                 if (!follower.isBusy()) {
                     intake.intakeOn();
-                    follower.followPath(intakeMid, 0.32, true);
+                    follower.followPath(intakeMid, 0.35, true);
                     setPathState(23);
                 }
                 break;

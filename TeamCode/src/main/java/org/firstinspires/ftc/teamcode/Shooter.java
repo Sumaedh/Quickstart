@@ -15,7 +15,7 @@ public class Shooter {
     public double LONG_VELOCITY = 1680;
     public double SHORT_VELOCITY = 1420;
 
-    public double SHOOTER_TOLERANCE = 30;
+    public double SHOOTER_TOLERANCE = 20;
 
     public void initShooter(HardwareMap hwMap) {
         shootingMotor = hwMap.get(DcMotorEx.class, "shootingMotor");
