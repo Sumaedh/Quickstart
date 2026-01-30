@@ -27,6 +27,10 @@ public class BlueAutoFarTurret extends OpMode {
     Sorter sorter = new Sorter();
     Turret turret = new Turret();
 
+    // New increment definitions (changed only the increment as requested)
+    private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
+    public static double INCREMENT = TICKS_PER_REV / 6;
+
     // Poses
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
     private final Pose scorePose = new Pose(59.535, 27, Math.toRadians(90));
@@ -66,8 +70,8 @@ public class BlueAutoFarTurret extends OpMode {
 
         intakeLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowPose, pickupLowIntake3))
-                .addParametricCallback(0.29, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.48, () -> sorter.setSorterTargetParametric(806.4))
+                .addParametricCallback(0.32, () -> sorter.setSorterTargetParametric(INCREMENT * 7))
+                .addParametricCallback(0.58, () -> sorter.setSorterTargetParametric(INCREMENT * 9))
                 .setConstantHeadingInterpolation(pickupLowIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
@@ -85,15 +89,15 @@ public class BlueAutoFarTurret extends OpMode {
 
         intakeMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
-                .addParametricCallback(0.32, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.50, () -> sorter.setSorterTargetParametric(1702.4))
+                .addParametricCallback(0.32, () -> sorter.setSorterTargetParametric(INCREMENT * 17))
+                .addParametricCallback(0.58, () -> sorter.setSorterTargetParametric(INCREMENT * 19))
                 .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1660))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1625))
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -108,7 +112,7 @@ public class BlueAutoFarTurret extends OpMode {
 
             case 0:
                 // follower.followPath(startPreload);
-                shooter.setCurTargetVelocity("custom", 1700);
+                shooter.setCurTargetVelocity("custom", 1685);
                 setPathState(1);
                 break;
 
@@ -138,7 +142,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 4:
-                sorter.setSorterTarget(179.2);
+                sorter.setSorterTarget(INCREMENT * 2);
                 if (sorter.SorterAtTarget()) setPathState(5);
                 break;
 
@@ -159,7 +163,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 7:
-                sorter.setSorterTarget(358.4);
+                sorter.setSorterTarget(INCREMENT * 4);
                 if (sorter.SorterAtTarget()) setPathState(8);
                 break;
 
@@ -180,7 +184,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 10:
-                sorter.setSorterTarget(448);
+                sorter.setSorterTarget(INCREMENT * 5);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLowFromStart, 1, true);
                 if (sorter.SorterAtTarget()) setPathState(11);
@@ -196,7 +200,7 @@ public class BlueAutoFarTurret extends OpMode {
             case 12:
                 if (!follower.isBusy()) {
                     intake.intakeOff();
-                    sorter.setSorterTarget(896);
+                    sorter.setSorterTarget(INCREMENT * 10);
                     follower.followPath(scoreFromLow, 1,true);
                     setPathState(13);
                 }
@@ -221,7 +225,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 15:
-                sorter.setSorterTarget(1075.2);
+                sorter.setSorterTarget(INCREMENT * 12);
                 if (sorter.SorterAtTarget()) {
                     setPathState(16);
                 }
@@ -244,7 +248,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 18:
-                sorter.setSorterTarget(1254.4);
+                sorter.setSorterTarget(INCREMENT * 14);
                 if (sorter.SorterAtTarget()) {
                     setPathState(19);
                 }
@@ -267,7 +271,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 21:
-                sorter.setSorterTarget(1344);
+                sorter.setSorterTarget(INCREMENT * 15);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, 1, true);
                 if (sorter.SorterAtTarget()) {
@@ -285,7 +289,7 @@ public class BlueAutoFarTurret extends OpMode {
 
             case 23:
                 if (!follower.isBusy()) {
-                    sorter.setSorterTarget(1792);
+                    sorter.setSorterTarget(INCREMENT * 20);
                     intake.intakeOff();
                     follower.followPath(scoreFromMid, 1,true);
                     setPathState(24);
@@ -311,7 +315,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 26:
-                sorter.setSorterTarget(1971.2);
+                sorter.setSorterTarget(INCREMENT * 22);
                 if (sorter.SorterAtTarget()) {
                     setPathState(27);
                 }
@@ -334,7 +338,7 @@ public class BlueAutoFarTurret extends OpMode {
                 break;
 
             case 29:
-                sorter.setSorterTarget(2150.4);
+                sorter.setSorterTarget(INCREMENT * 24);
                 if (sorter.SorterAtTarget()) {
                     setPathState(30);
                 }
@@ -418,4 +422,3 @@ public class BlueAutoFarTurret extends OpMode {
     @Override
     public void stop() {}
 }
-

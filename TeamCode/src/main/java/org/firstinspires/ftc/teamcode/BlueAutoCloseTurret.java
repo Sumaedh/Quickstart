@@ -35,6 +35,9 @@ public class BlueAutoCloseTurret extends OpMode {
 
     Turret turret = new Turret();
 
+    private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
+    public static double INCREMENT = TICKS_PER_REV / 6;
+
     // Poses
 
     private final Pose startPose = new Pose(20.389, 122.422, Math.toRadians(143));
@@ -75,8 +78,8 @@ public class BlueAutoCloseTurret extends OpMode {
 
         intakeLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowPose, pickupLowIntake3))
-                .addParametricCallback(0.25, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.44, () -> sorter.setSorterTargetParametric(806.4))
+                .addParametricCallback(0.25, () -> sorter.setSorterTargetParametric(INCREMENT * 7))
+                .addParametricCallback(0.44, () -> sorter.setSorterTargetParametric(INCREMENT * 9))
                 .setConstantHeadingInterpolation(pickupLowIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
@@ -95,8 +98,8 @@ public class BlueAutoCloseTurret extends OpMode {
         // TODO: FIX
         intakeMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
-                .addParametricCallback(0.26, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.445, () -> sorter.setSorterTargetParametric(1702.4))
+                .addParametricCallback(0.26, () -> sorter.setSorterTargetParametric(INCREMENT * 17))
+                .addParametricCallback(0.445, () -> sorter.setSorterTargetParametric(INCREMENT * 19))
                 .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
@@ -148,7 +151,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
 
             case 4:
-                sorter.setSorterTarget(179.2);
+                sorter.setSorterTarget(INCREMENT * 2);
                 if (sorter.SorterAtTarget()) {
                     actionTimer.resetTimer();
                     setPathState(5);
@@ -156,7 +159,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
             case 5:
                 // SHOOT SEQUENCE 2 START
-                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.2) {
+                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(6);
@@ -170,7 +173,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 }
                 break;
             case 7:
-                sorter.setSorterTarget(358.4);
+                sorter.setSorterTarget(INCREMENT * 4);
                 if (sorter.SorterAtTarget()) {
                     actionTimer.resetTimer();
                     setPathState(8);
@@ -179,7 +182,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
             case 8:
                 // SHOOT SEQUENCE 3 START
-                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.2) {
+                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(9);
@@ -195,7 +198,7 @@ public class BlueAutoCloseTurret extends OpMode {
             case 10:
                 // GOING TO INTAKE 1
                 shooter.setCurTargetVelocity("0", 0);
-                sorter.setSorterTarget(448);
+                sorter.setSorterTarget(INCREMENT * 5);
                 follower.followPath(alignToLow,1, true);
                 if (sorter.SorterAtTarget()) {
                     setPathState(11);
@@ -210,7 +213,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
             case 12:
                 if (!follower.isBusy()) {
-                    sorter.setSorterTarget(896);
+                    sorter.setSorterTarget(INCREMENT * 10);
                     follower.followPath(scoreFromLow,1, true);
                     setPathState(13);
                 }
@@ -234,14 +237,15 @@ public class BlueAutoCloseTurret extends OpMode {
                 }
                 break;
             case 15:
-                sorter.setSorterTarget(1075.2);
+                sorter.setSorterTarget(INCREMENT * 12);
                 if (sorter.SorterAtTarget()) {
+                    actionTimer.resetTimer();
                     setPathState(16);
                 }
                 break;
             case 16:
                 // SHOOT SEQUENCE 2 START (2nd time)
-                if (shooter.ShooterAtTarget()) {
+                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(17);
@@ -255,14 +259,15 @@ public class BlueAutoCloseTurret extends OpMode {
                 }
                 break;
             case 18:
-                sorter.setSorterTarget(1254.4);
+                sorter.setSorterTarget(INCREMENT * 14);
                 if (sorter.SorterAtTarget()) {
+                    actionTimer.resetTimer();
                     setPathState(19);
                 }
                 break;
             case 19:
                 // SHOOT SEQUENCE 3 START (2nd time)
-                if (shooter.ShooterAtTarget()) {
+                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(20);
@@ -277,7 +282,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
             case 21:
                 // GOING TO INTAKE 2
-                sorter.setSorterTarget(1344);
+                sorter.setSorterTarget(INCREMENT * 15);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid,1, true);
                 if (sorter.SorterAtTarget()) {
@@ -293,7 +298,7 @@ public class BlueAutoCloseTurret extends OpMode {
                 break;
             case 23:
                 if (!follower.isBusy()) {
-                    sorter.setSorterTarget(1792);
+                    sorter.setSorterTarget(INCREMENT * 20);
                     intake.intakeOff();
                     follower.followPath(scoreFromMid, true);
                     setPathState(24);
@@ -316,14 +321,15 @@ public class BlueAutoCloseTurret extends OpMode {
                 }
                 break;
             case 26:
-                sorter.setSorterTarget(1971.2);
+                sorter.setSorterTarget(INCREMENT * 22);
                 if (sorter.SorterAtTarget()) {
+                    actionTimer.resetTimer();
                     setPathState(27);
                 }
                 break;
             case 27:
                 // SHOOT SEQUENCE 2 START
-                if (shooter.ShooterAtTarget()) {
+                if (shooter.ShooterAtTarget() && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(28);
@@ -337,16 +343,16 @@ public class BlueAutoCloseTurret extends OpMode {
                 }
                 break;
             case 29:
-                sorter.setSorterTarget(2150.4);
+                sorter.setSorterTarget(INCREMENT * 24);
                 if (sorter.SorterAtTarget()) {
-
+                    actionTimer.resetTimer();
                     setPathState(30);
 
                 }
                 break;
             case 30:
                 // SHOOT SEQUENCE 3 START
-                if (shooter.ShooterAtTarget()) {
+                if (shooter.ShooterAtTarget()  && actionTimer.getElapsedTimeSeconds() >= 0.4) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(31);
@@ -458,7 +464,7 @@ public class BlueAutoCloseTurret extends OpMode {
 
         lever.leverDown();
 
-        pitch.pitchUp();
+        pitch.pitchServo.setPosition(0.43);
 
     }
 

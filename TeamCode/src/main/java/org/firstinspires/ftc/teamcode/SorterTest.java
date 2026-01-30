@@ -43,33 +43,24 @@ public class SorterTest extends OpMode {
     DistanceSensor distanceSensor2;
 
     public static double integralSum = 0;
-    private double p = 0.0029;
-    private double i = 0.0;
-    private double d = 0.00017;
+    public static double p = 0.007;
+    public static double i = 0.0;
+    public static double d = 0.00033;
 
     public static double kS = 0.02;
 
-    private static final double TICKS_PER_REV = 537.6;
+    private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
 
     public static double INCREMENT = TICKS_PER_REV / 6;
-
-    public static double targetAngle = 90;
-    public static double MIN_ANGLE = 20;
-    public static double MAX_ANGLE = 330;
 
     double target = 0;
 
 
+    private ElapsedTime boostTimer = new ElapsedTime();
+    private boolean boostActive = false;
+
     ElapsedTime timer = new ElapsedTime();
     public double lastError = 0;
-
-
-    enum State {
-        ONE,
-        TWO,
-        NONE
-    }
-    State state = State.NONE;
 
     @Override
     public void init() {
@@ -131,45 +122,51 @@ public class SorterTest extends OpMode {
 
     @Override
     public void loop() {
-
-
+        // Check for target changes and trigger boost
         if (gamepad1.aWasPressed()) {
             target += INCREMENT;
+            boostActive = true;
+            boostTimer.reset();
         }
 
-        if (gamepad1.bWasPressed()) {
-            state = State.ONE;
-
-            switch (state) {
-                case ONE:
-                    sorterMotor.setPower(0.8);
-                    if (distanceSensor2.getDistance(DistanceUnit.INCH) >= 1.1 && distanceSensor2.getDistance(DistanceUnit.INCH) >= 2) {
-                        timer.reset();
-                        state = State.TWO;
-                    }
-                    break;
-                case TWO:
-                    sorterMotor.setPower(0);
-                    sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    state = State.NONE;
-                    break;
-
-            }
-
+        if (gamepad1.yWasPressed()) {
+            target += (INCREMENT * 2);
+            boostActive = true;
+            boostTimer.reset();
         }
 
+        if (gamepad1.xWasPressed()) {
+            target += (INCREMENT * 3);
+            boostTimer.reset();
+        }
 
-        controller.setPID(p,i,d);
+        controller.setPID(p, i, d);
         double currentPos = sorterMotor.getCurrentPosition();
-        double pidOutput = controller.calculate(currentPos, target);
         double error = target - currentPos;
-        double staticFF = kS * Math.signum(error);
 
-        sorterMotor.setPower(pidOutput + staticFF);
+        double motorPower;
 
-        telemetry.addData("Pos: ", sorterMotor.getCurrentPosition());
-        telemetry.addData("target: ", target);
+        // BOOST PHASE: Full power for 0.25s when target changes
+        if (boostActive && boostTimer.seconds() < 0.1) {
+            // Full speed in the direction we need to go
+            // Use Math.signum(error) to get -1 or 1 based on direction
+            motorPower = Math.signum(error); // or 0.8 if full power is too violent
+        }
+        // PID PHASE: Normal control after 0.25s or if boost finished
+        else {
+            boostActive = false; // Reset flag
+            double pidOutput = controller.calculate(currentPos, target);
+            double staticFF = kS * Math.signum(error);
+            motorPower = pidOutput + staticFF;
+        }
+
+        sorterMotor.setPower(motorPower);
+
+        telemetry.addData("Boost Active: ", boostActive);
+        telemetry.addData("Boost Time: ", boostActive ? boostTimer.seconds() : 0);
+        telemetry.addData("Pos: ", currentPos);
+        telemetry.addData("Target: ", target);
+        telemetry.addData("Error: ", error);
         telemetry.update();
     }
 }
