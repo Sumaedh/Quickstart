@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @TeleOp(name = "REAL TELEOP (with turret)")
 public class TeleopNewestWithTurret extends OpMode {
 
-    // Shooting / sorter / drive rgrrf(existing)
+    // Shooting / sorter / drive (existing)
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
@@ -36,11 +36,11 @@ public class TeleopNewestWithTurret extends OpMode {
     private DcMotor sorterMotor;
     private PIDController sorterController;
 
-    private double pSorting = 0.007;
+    private double pSorting = 0.004;
     private double iSorting = 0.0;
-    private double dSorting = 0.00033;
+    private double dSorting = 0.00027;
 
-    public static double kSSorting = 0.02;
+    public static double kSSorting = 0.034;
 
     private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
 

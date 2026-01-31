@@ -40,12 +40,12 @@ public class SorterPID extends OpMode {
     Deadline rateLimit;
 
     public static double integralSum = 0;
-    public static double p = 0.003;
+    public static double p = 0.004;
     public static double i = 0;
-    public static double d = 0.1;
+    public static double d = 0.00027;
 
     // <-- ADDED: static feedforward (kS)
-    public static double kS = 0.08;
+    public static double kS = 0.034;
 
     public static double targetAngle = 90;
     public static double target = 20;
