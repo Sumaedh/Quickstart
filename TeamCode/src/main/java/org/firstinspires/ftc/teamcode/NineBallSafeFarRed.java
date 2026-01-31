@@ -43,7 +43,7 @@ public class NineBallSafeFarRed extends OpMode {
 
     // Poses
     private final Pose startPose = new Pose(88.389, 6.832, Math.toRadians(90));
-    private final Pose scorePose = new Pose(84.076, 19.849, Math.toRadians(58));
+    private final Pose scorePose = new Pose(84.076, 19.849, Math.toRadians(90));
     private final Pose pickupLowPose = new Pose(101.87567567567568, 36.184, Math.toRadians(0));
     private final Pose pickupLowIntake3 = new Pose(120.53, 36.184, Math.toRadians(0));
     private final Pose pickupMidPose = new Pose(104.876, 36.184, Math.toRadians(0));
@@ -190,7 +190,7 @@ public class NineBallSafeFarRed extends OpMode {
 
             // GO TO LOW INTAKE
             case 10:
-                target = INCREMENT * 6; // FIXED (was 5)
+                target = INCREMENT * 6;
                 shooter.setCurTargetVelocity("0", 0);
                 follower.getConstraints().setHeadingConstraint(8);
                 follower.followPath(alignToLowFromStart, 1, true);

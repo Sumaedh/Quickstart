@@ -119,6 +119,8 @@ public class TeleopNewestWithTurret extends OpMode {
     private final double TARGET_RANGE_MAX = 2.0;
     private final double SEEK_POWER = 0.2;
 
+    int turns = 0;
+
     // Utility drive functions (unchanged)
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
@@ -264,6 +266,19 @@ public class TeleopNewestWithTurret extends OpMode {
         if (gamepad2.dpad_up) leverServo.setPosition(0.2);
         else leverServo.setPosition(0);
 
+
+        /*
+        if (gamepad2.aWasPressed()) {
+            turns += 1;
+            target = (turns % 6) * INCREMENT;
+        }
+
+        if (gamepad2.yWasPressed()) {
+            turns += 2;
+            target = (turns % 6) * INCREMENT;
+        }
+         */
+
         // SORTER (unchanged)
         if (gamepad2.aWasPressed()) {
             target += INCREMENT;
@@ -271,16 +286,6 @@ public class TeleopNewestWithTurret extends OpMode {
 
         if (gamepad2.yWasPressed()) {
             target += (INCREMENT * 2);
-        }
-
-        if (gamepad2.xWasPressed()) {
-            relocalize = true;
-            sorterMotor.setPower(0.2);
-            double length = distanceSensor2.getDistance(DistanceUnit.INCH);
-            if (length >= 1.4 && length <= 2) {
-                sorterMotor.setPower(0);
-                relocalize = false;
-            }
         }
 
         sorterController.setPID(pSorting, iSorting, dSorting);
@@ -293,9 +298,12 @@ public class TeleopNewestWithTurret extends OpMode {
         double staticFF = kSSorting * Math.signum(error);
         motorPowerSorter = pidOutput + staticFF;
 
-        if (!relocalize) {
-            sorterMotor.setPower(motorPowerSorter);
-        }
+
+        sorterMotor.setPower(motorPowerSorter);
+
+        telemetry.addData("target pos", target);
+        telemetry.addData("current pos", currentPos);
+        telemetry.update();
 
         // SHOOTING (unchanged)
         boolean shooterEnabled1 = gamepad2.left_trigger > 0.75;
