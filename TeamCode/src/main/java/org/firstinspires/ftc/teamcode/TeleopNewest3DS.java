@@ -10,33 +10,38 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP")
-public class TeleopNewest extends OpMode {
+@TeleOp(name = "REAL TELEOP 3 blue ds")
+public class TeleopNewest3DS extends OpMode {
 
     public double fShooting = 15;
     public double fShootingshort = 15.25;
     public double pShooting = 250;
     public double curTargetVelocity = 0;
 
+    DistanceSensor distanceSensor2;
+
     private DcMotor sorterMotor;
     private PIDController sorterController;
-    private double pSorting = 0.004;
+
+    private double pSorting = 0.0029;
     private double iSorting = 0.0;
-    private double dSorting = 0.00027;
+    private double dSorting = 0.00017;
 
-    public static double kSSorting = 0.034;
+    public static double kSSorting = 0.02;
 
-    private static final double TICKS_PER_REV = 537.6 * (double) (10/14);
+    private static final double TICKS_PER_REV = 537.6;
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 
@@ -47,7 +52,6 @@ public class TeleopNewest extends OpMode {
 
     DcMotor intakeMotor;
     Servo pitchServo;
-    DcMotor rotationMotor;
     DcMotorEx shootingMotor;
     Servo leverServo;
     ColorSensor colorSensor;
@@ -59,7 +63,22 @@ public class TeleopNewest extends OpMode {
     DcMotor backLeft;
     DcMotor backRight;
     IMU turretImu;
+
+    Turret turret = new Turret();
     ElapsedTime timer = new ElapsedTime();
+
+    private enum SorterState {
+        IDLE,           // Normal PID operation
+        SEEKING,        // Moving toward sensor target
+        CONFIRMING      // Ball detected, waiting 0.1s to confirm settled
+    }
+    private SorterState sorterState = SorterState.IDLE;
+
+    private ElapsedTime confirmTimer = new ElapsedTime();
+    private final double CONFIRM_TIME_SEC = 0.07;
+    private final double TARGET_RANGE_MIN = 1.4;
+    private final double TARGET_RANGE_MAX = 2.0;
+    private final double SEEK_POWER = 0.1;
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
         frontLeft.setPower((-left_y + left_x + right_x) / maxPower);
@@ -78,6 +97,8 @@ public class TeleopNewest extends OpMode {
 
     @Override
     public void init() {
+
+        turret.initTurret(hardwareMap, telemetry);
         sorterController = new PIDController(pSorting,iSorting,dSorting);
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -86,13 +107,13 @@ public class TeleopNewest extends OpMode {
 
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         pitchServo = hardwareMap.get(Servo.class,"pitchServo");
-        rotationMotor = hardwareMap.get(DcMotor.class, "rotationMotor");
         shootingMotor = hardwareMap.get(DcMotorEx.class, "shootingMotor");
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
         huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         leverServo = hardwareMap.get(Servo.class,"leverServo");
         turretImu = hardwareMap.get(IMU.class, "turretImu");
+        distanceSensor2 = hardwareMap.get(DistanceSensor.class, "distanceSensor2");
 
         PIDFCoefficients pidfShooting =
                 new PIDFCoefficients(pShooting, 0, 0, fShooting);
@@ -112,9 +133,6 @@ public class TeleopNewest extends OpMode {
 
         shootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        rotationMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
         rateLimit.expire();
@@ -163,6 +181,7 @@ public class TeleopNewest extends OpMode {
         // PITCH
         pitchServo.setPosition(0.42);
 
+        turret.PIDFTurretLoop();
 
         // DRIVE
         if (gamepad1.left_trigger > 0.75) {
@@ -183,21 +202,77 @@ public class TeleopNewest extends OpMode {
 
 
         // SORTER
-        if (gamepad2.aWasPressed()) {
+        if (gamepad2.aWasPressed() && sorterState == SorterState.IDLE) {
+
+
             target += INCREMENT;
         }
-        if (gamepad2.yWasPressed()) {
+
+        if (gamepad2.yWasPressed() && sorterState == SorterState.IDLE) {
+
+
             target += (INCREMENT*2);
         }
 
+        // FSM Logic
+        switch (sorterState) {
+            case IDLE:
+                // Check if we should start relocalizing
+                if (gamepad2.xWasPressed()) {
+                    sorterState = SorterState.SEEKING;
+                }
 
-        sorterController.setPID(pSorting,iSorting,dSorting);
-        double currentPos = sorterMotor.getCurrentPosition();
-        double pidOutput = sorterController.calculate(currentPos, target);
-        double error = target - currentPos;
-        double staticFF = kSSorting * Math.signum(error);
+                // Run normal PID
+                sorterController.setPID(pSorting, iSorting, dSorting);
+                double currentPos = sorterMotor.getCurrentPosition();
+                double error = target - currentPos;
+                double pidOutput = sorterController.calculate(currentPos, target);
+                double staticFF = kSSorting * Math.signum(error);
+                sorterMotor.setPower(pidOutput + staticFF);
+                break;
 
-        sorterMotor.setPower(pidOutput + staticFF);
+            case SEEKING:
+                double dist = distanceSensor2.getDistance(DistanceUnit.INCH);
+
+                // Check if ball is in range
+                if (dist >= TARGET_RANGE_MIN && dist <= TARGET_RANGE_MAX) {
+                    // Ball detected! Start confirmation timer
+                    sorterState = SorterState.CONFIRMING;
+                    confirmTimer.reset();  // Start the 0.1s countdown
+                    sorterMotor.setPower(SEEK_POWER * 0.5); // Optional: slow down while confirming
+                } else {
+                    // Keep seeking
+                    sorterMotor.setPower(SEEK_POWER);
+                }
+
+                // Safety cancel: if driver hits X again, stop
+                if (gamepad2.xWasPressed()) {
+                    sorterState = SorterState.IDLE;
+                    target = sorterMotor.getCurrentPosition(); // Lock current position
+                }
+                break;
+
+            case CONFIRMING:
+                double confirmDist = distanceSensor2.getDistance(DistanceUnit.INCH);
+
+                // Verify ball is still there during confirmation window
+                if (confirmDist < TARGET_RANGE_MIN || confirmDist > TARGET_RANGE_MAX) {
+                    // Ball moved or was lost! Go back to seeking
+                    sorterState = SorterState.SEEKING;
+                } else if (confirmTimer.seconds() >= CONFIRM_TIME_SEC) {
+                    // Success! 0.1s has passed with ball stable
+                    sorterMotor.setPower(0);
+                    target = sorterMotor.getCurrentPosition(); // Update target to stay here
+                    sorterState = SorterState.IDLE;
+                }
+                // else: still confirming, keep motor at low power or hold position
+
+                // Allow cancel during confirmation too
+                if (gamepad2.xWasPressed()) {
+                    sorterState = SorterState.IDLE;
+                }
+                break;
+        }
 
         // SHOOTING
         boolean shooterEnabled1 = gamepad2.left_trigger > 0.75;

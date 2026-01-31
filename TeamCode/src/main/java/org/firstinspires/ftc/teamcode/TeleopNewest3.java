@@ -20,7 +20,7 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP 3")
+@TeleOp(name = "REAL TELEOP 3 blue")
 public class TeleopNewest3 extends OpMode {
 
     public double fShooting = 15;
@@ -31,13 +31,13 @@ public class TeleopNewest3 extends OpMode {
     private DcMotor sorterMotor;
     private PIDController sorterController;
 
-    private double pSorting = 0.0029;
+    private double pSorting = 0.004;
     private double iSorting = 0.0;
-    private double dSorting = 0.00017;
+    private double dSorting = 0.00027;
 
-    public static double kSSorting = 0.02;
+    public static double kSSorting = 0.034;
 
-    private static final double TICKS_PER_REV = 537.6;
+    private static final double TICKS_PER_REV = 537.6 * (double) (10/14);
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 

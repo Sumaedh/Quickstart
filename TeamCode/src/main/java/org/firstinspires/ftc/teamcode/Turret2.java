@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
-public class Turret {
+public class Turret2 {
 
     // -------- Tunables --------
     public static double p = 0.03;
@@ -67,31 +67,19 @@ public class Turret {
     // -------- Loop (Auto + TeleOp) --------
     public void PIDFTurretLoop() {
 
-        pid.setPID(p, i, d);
-
         LLResult result = limelight.getLatestResult();
-        boolean hasTarget = (result != null && result.isValid());
 
-        // 🚫 If no target, STOP the turret
-        if (!hasTarget) {
-            rotationMotor.setPower(0);
-            return;
+        int pos = rotationMotor.getCurrentPosition();
+        double offset = result.getTx();
+        pos += (offset * 7.5 / 384.5);
+        if (pos > 1000) {
+            pos = 1000;
         }
-
-        lastTx = result.getTx();
-        double measurement = lastTx;
-
-        double pidOut = pid.calculate(measurement, setpoint);
-        double error = setpoint - measurement;
-
-        double motorPower = pidOut + Math.copySign(kF, error);
-
-        motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
-
-        int ticks = rotationMotor.getCurrentPosition();
-        if (ticks >= ENCODER_HIGH_LIMIT && motorPower > 0) motorPower = 0;
-        if (ticks <= ENCODER_LOW_LIMIT  && motorPower < 0) motorPower = 0;
-
-        rotationMotor.setPower(motorPower);
+        else if (pos < -1000) {
+            pos = -1000;
+        }
+        rotationMotor.setTargetPosition(pos);
+        rotationMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rotationMotor.setPower(0.2);
     }
 }

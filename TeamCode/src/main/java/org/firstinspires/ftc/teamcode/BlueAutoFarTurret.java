@@ -23,7 +23,7 @@ public class BlueAutoFarTurret extends OpMode {
     Lever lever = new Lever();
     Pitch pitch = new Pitch();
     Shooter shooter = new Shooter();
-    Turret turret = new Turret();
+    Turret3 turret = new Turret3();
 
     // Sorter variables (exact same PID/FF as TeleOp, no boost logic)
     private PIDController sorterController;
@@ -186,6 +186,7 @@ public class BlueAutoFarTurret extends OpMode {
                 if (!follower.isBusy()) {
                     intake.intakeOff();
                     target = INCREMENT * 10;
+                    turret.setOverride("true");
                     follower.followPath(scoreFromLow, 1, true);
                     setPathState(13);
                 }

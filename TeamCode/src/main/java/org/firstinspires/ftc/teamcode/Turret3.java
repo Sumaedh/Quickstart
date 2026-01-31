@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
-public class Turret {
+public class Turret3 {
 
     // -------- Tunables --------
     public static double p = 0.03;
@@ -35,6 +35,8 @@ public class Turret {
     // -------- Control --------
     private PIDController pid;
     private double lastTx = 0.0;
+
+    boolean override = false;
 
     // -------- Init --------
     public void initTurret(HardwareMap hwMap, Telemetry telemetry) {
@@ -64,6 +66,14 @@ public class Turret {
         }
     }
 
+    public void setOverride(String set) {
+        if (set == "true") {
+            override = true;
+        } else if (set == "false") {
+            override = false;
+        }
+    }
+
     // -------- Loop (Auto + TeleOp) --------
     public void PIDFTurretLoop() {
 
@@ -71,11 +81,24 @@ public class Turret {
 
         LLResult result = limelight.getLatestResult();
         boolean hasTarget = (result != null && result.isValid());
+        int ticks = rotationMotor.getCurrentPosition();
 
         // 🚫 If no target, STOP the turret
         if (!hasTarget) {
             rotationMotor.setPower(0);
             return;
+        } else if (!hasTarget && override && Math.signum((double) ticks) == -1) {
+            rotationMotor.setPower(0.3);
+            if (hasTarget) {
+                rotationMotor.setPower(0);
+                override = false;
+            }
+        } else if (!hasTarget && override && Math.signum((double) ticks) == 1) {
+            rotationMotor.setPower(-0.3);
+            if (hasTarget) {
+                rotationMotor.setPower(0);
+                override = false;
+            }
         }
 
         lastTx = result.getTx();
@@ -86,9 +109,10 @@ public class Turret {
 
         double motorPower = pidOut + Math.copySign(kF, error);
 
-        motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
+        if (!override) {
+            motorPower = Math.max(-1.0, Math.min(1.0, motorPower));
+        }
 
-        int ticks = rotationMotor.getCurrentPosition();
         if (ticks >= ENCODER_HIGH_LIMIT && motorPower > 0) motorPower = 0;
         if (ticks <= ENCODER_LOW_LIMIT  && motorPower < 0) motorPower = 0;
 

@@ -20,8 +20,8 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP")
-public class TeleopNewest extends OpMode {
+@TeleOp(name = "REAL TELEOP 3 red")
+public class TeleopNewest3Red extends OpMode {
 
     public double fShooting = 15;
     public double fShootingshort = 15.25;
@@ -30,13 +30,14 @@ public class TeleopNewest extends OpMode {
 
     private DcMotor sorterMotor;
     private PIDController sorterController;
+
     private double pSorting = 0.004;
     private double iSorting = 0.0;
     private double dSorting = 0.00027;
 
     public static double kSSorting = 0.034;
 
-    private static final double TICKS_PER_REV = 537.6 * (double) (10/14);
+    private static final double TICKS_PER_REV = 537.6 * (double) (10 / 14);
 
     public static double INCREMENT = TICKS_PER_REV / 6;
 
@@ -47,7 +48,6 @@ public class TeleopNewest extends OpMode {
 
     DcMotor intakeMotor;
     Servo pitchServo;
-    DcMotor rotationMotor;
     DcMotorEx shootingMotor;
     Servo leverServo;
     ColorSensor colorSensor;
@@ -59,6 +59,10 @@ public class TeleopNewest extends OpMode {
     DcMotor backLeft;
     DcMotor backRight;
     IMU turretImu;
+
+    boolean turreti = true;
+
+    Turret turret = new Turret();
     ElapsedTime timer = new ElapsedTime();
     public void driveMecanum(double left_y, double left_x, double right_x){
         double maxPower = Math.max(Math.abs(left_y) + Math.abs(left_x) + Math.abs(right_x), 1);
@@ -78,6 +82,9 @@ public class TeleopNewest extends OpMode {
 
     @Override
     public void init() {
+
+        turret.initTurret(hardwareMap, telemetry);
+        turret.pipeline(1);
         sorterController = new PIDController(pSorting,iSorting,dSorting);
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -86,7 +93,6 @@ public class TeleopNewest extends OpMode {
 
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         pitchServo = hardwareMap.get(Servo.class,"pitchServo");
-        rotationMotor = hardwareMap.get(DcMotor.class, "rotationMotor");
         shootingMotor = hardwareMap.get(DcMotorEx.class, "shootingMotor");
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
         huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
@@ -112,9 +118,6 @@ public class TeleopNewest extends OpMode {
 
         shootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        rotationMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
         rateLimit.expire();
@@ -163,12 +166,19 @@ public class TeleopNewest extends OpMode {
         // PITCH
         pitchServo.setPosition(0.42);
 
+        if (turreti) {
+            turret.PIDFTurretLoop();
+        }
 
         // DRIVE
         if (gamepad1.left_trigger > 0.75) {
             driveMecanumSlower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             driveMecanum(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        }
+
+        if (gamepad1.dpad_left) {
+            turreti = false;
         }
 
         // INTAKE
@@ -186,10 +196,10 @@ public class TeleopNewest extends OpMode {
         if (gamepad2.aWasPressed()) {
             target += INCREMENT;
         }
+
         if (gamepad2.yWasPressed()) {
             target += (INCREMENT*2);
         }
-
 
         sorterController.setPID(pSorting,iSorting,dSorting);
         double currentPos = sorterMotor.getCurrentPosition();
