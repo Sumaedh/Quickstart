@@ -445,7 +445,7 @@ public class BlueAutoFarSafe extends OpMode {
 
         sorter.initSorter(hardwareMap);
 
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
 
