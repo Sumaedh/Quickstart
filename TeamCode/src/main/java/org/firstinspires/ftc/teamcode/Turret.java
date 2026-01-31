@@ -38,7 +38,7 @@ public class Turret {
 
     // ANTI-FLICKER: Timeout variables
     private ElapsedTime lostTargetTimer = new ElapsedTime();
-    private static final double LOST_TARGET_TIMEOUT_MS = 250; // Allow 150ms of flickering
+    private static final double LOST_TARGET_TIMEOUT_MS = 150; // Allow 150ms of flickering
     private boolean wasTargetValid = false;
 
     public void initTurret(HardwareMap hwMap, Telemetry telemetry) {
