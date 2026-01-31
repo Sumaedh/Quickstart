@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -132,7 +133,7 @@ public class RedAutoCloseTurret extends OpMode {
                 break;
             case 2:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(3);
@@ -219,7 +220,7 @@ public class RedAutoCloseTurret extends OpMode {
             case 13:
                 // SHOOTING SEQUENCE 1 (2nd time)
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(14);
@@ -301,7 +302,7 @@ public class RedAutoCloseTurret extends OpMode {
                 break;
             case 24:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(25);
@@ -449,7 +450,7 @@ public class RedAutoCloseTurret extends OpMode {
 
         sorter.initSorter(hardwareMap);
 
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
 

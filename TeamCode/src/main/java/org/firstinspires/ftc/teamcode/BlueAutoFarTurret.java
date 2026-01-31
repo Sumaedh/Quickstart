@@ -125,7 +125,7 @@ public class BlueAutoFarTurret extends OpMode {
 
             case 2:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(3);
@@ -208,7 +208,7 @@ public class BlueAutoFarTurret extends OpMode {
 
             case 13:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(14);
@@ -298,7 +298,7 @@ public class BlueAutoFarTurret extends OpMode {
 
             case 24:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(25);
@@ -404,7 +404,7 @@ public class BlueAutoFarTurret extends OpMode {
         pitch.initPitch(hardwareMap);
         shooter.initShooter(hardwareMap);
         sorter.initSorter(hardwareMap);
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
         pitch.pitchUp();

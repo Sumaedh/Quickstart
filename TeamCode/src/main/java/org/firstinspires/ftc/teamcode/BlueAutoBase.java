@@ -244,7 +244,7 @@ public class BlueAutoBase extends OpMode {
         pitch.initPitch(hardwareMap);
         shooter.initShooter(hardwareMap);
         sorter.initSorter(hardwareMap);
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
         pitch.pitchUp();

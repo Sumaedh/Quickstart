@@ -130,7 +130,7 @@ public class RedAutoFarTurret extends OpMode {
                 break;
             case 2:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(3);
@@ -217,7 +217,7 @@ public class RedAutoFarTurret extends OpMode {
             case 13:
                 // SHOOTING SEQUENCE 1 (2nd time)
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(14);
@@ -299,7 +299,7 @@ public class RedAutoFarTurret extends OpMode {
                 break;
             case 24:
                 if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                    if (shooter.ShooterAtTarget() ) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(25);
@@ -447,7 +447,7 @@ public class RedAutoFarTurret extends OpMode {
 
         sorter.initSorter(hardwareMap);
 
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
 
