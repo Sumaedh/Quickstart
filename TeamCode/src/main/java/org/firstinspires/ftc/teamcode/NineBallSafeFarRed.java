@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -9,84 +8,88 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous
-public class RedAutoCloseTurret extends OpMode {
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-    // HEIGHT: 17.25 INCHES
-    // WIDTH: 17.75 inches
+@Autonomous
+public class NineBallSafeFarRed extends OpMode {
 
     private Follower follower;
-
     private Timer pathTimer, actionTimer, opmodeTimer;
-
     private int pathState;
 
     Intake intake = new Intake();
-
     Lever lever = new Lever();
-
     Pitch pitch = new Pitch();
-
     Shooter shooter = new Shooter();
-
-    Sorter sorter = new Sorter();
-
     Turret turret = new Turret();
 
+    // Sorter PID
+    private PIDController sorterController;
+    private double pSorting = 0.004;
+    private double iSorting = 0.0;
+    private double dSorting = 0.00027;
+    public static double kSSorting = 0.034;
+
+    private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
+    public static double INCREMENT = TICKS_PER_REV / 6;
+
+    private DcMotor sorterMotor;
+    private double target = 0;
+    private double sorterTolerance = 20;
+
     // Poses
+    private final Pose startPose = new Pose(88.389, 6.832, Math.toRadians(90));
+    private final Pose scorePose = new Pose(84.076, 19.849, Math.toRadians(90));
+    private final Pose pickupLowPose = new Pose(101.87567567567568, 36.184, Math.toRadians(0));
+    private final Pose pickupLowIntake3 = new Pose(120.53, 36.184, Math.toRadians(0));
+    private final Pose pickupMidPose = new Pose(104.876, 36.184, Math.toRadians(0));
+    private final Pose pickupMidIntake3 = new Pose(124.857, 60.614, Math.toRadians(0));
+    private final Pose endPose = new Pose(84.076, 19.849, Math.toRadians(90));
 
-    private final Pose startPose = new Pose(123.611, 122.422, Math.toRadians(37));
-    private final Pose secondPose = new Pose(110.768, 109.751, Math.toRadians(53));
-    private final Pose scorePose = new Pose(78.908, 78.284, Math.toRadians(48));
-    //137
-    private final Pose pickupLowPose = new Pose(100.492, 84.238, Math.toRadians(0));
-    private final Pose pickupLowIntake1 = new Pose(37.622, 36, Math.toRadians(0));
-    private final Pose pickupLowIntake2 = new Pose(32.292, 36, Math.toRadians(0));
-    private final Pose pickupLowIntake3 = new Pose(119.492, 84.238, Math.toRadians(0));
-
-    private final Pose pickupMidPose = new Pose(100, 59.686, Math.toRadians(0));
-    private final Pose pickupMidIntake1 = new Pose(37.622, 36 + 24, Math.toRadians(0));
-    private final Pose pickupMidIntake2 = new Pose(32.292, 36 + 24, Math.toRadians(0));
-    private final Pose pickupMidIntake3 = new Pose(120, 59.686, Math.toRadians(0));
-
-    private final Pose endPose = new Pose(95.93513513513513, 48.06486486486487, Math.toRadians(68));
-
-    private Path startPreload;
-
-    private PathChain score1, alignToMid, intakeMid, scoreFromMid, alignToLow, intakeLow, scoreFromLow, goToEnd;
-
-    // PATH BUILDER
+    // PathChains
+    private PathChain startPreload, score1, alignToLowFromStart, alignToLow,
+            intakeLow, scoreFromLow, alignToMid, intakeMid, scoreFromMid, goToEnd;
 
     public void buildPaths() {
-        startPreload = new Path(new BezierLine(startPose, secondPose));
-        startPreload.setConstantHeadingInterpolation(secondPose.getHeading());
+
+        // PRELOAD (wrap Path → PathChain)
+        Path preloadPath = new Path(new BezierLine(startPose, scorePose));
+        preloadPath.setConstantHeadingInterpolation(scorePose.getHeading());
+
+        startPreload = follower.pathBuilder()
+                .addPath(preloadPath)
+                .build();
 
         score1 = follower.pathBuilder()
-                .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("short", 0))
-                .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(startPose, scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .build();
+
+        alignToLowFromStart = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, pickupLowPose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), pickupLowPose.getHeading())
                 .build();
 
         alignToLow = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, pickupLowPose))
-                .setBrakingStrength(1)
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickupLowPose.getHeading())
                 .build();
 
         intakeLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowPose, pickupLowIntake3))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(806.4))
+                .addParametricCallback(0.32, () -> target = INCREMENT * 7)
+                .addParametricCallback(0.54, () -> target = INCREMENT * 9)
                 .setConstantHeadingInterpolation(pickupLowIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short", 0))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1660))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -95,18 +98,19 @@ public class RedAutoCloseTurret extends OpMode {
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickupMidPose.getHeading())
                 .build();
 
-        // TODO: FIX
         intakeMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidPose, pickupMidIntake3))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(1702.4))
+                .addParametricCallback(0.32, () -> target = INCREMENT * 17)
+                .addParametricCallback(0.54, () -> target = INCREMENT * 19)
                 .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
                 .setBrakingStrength(0.5)
                 .build();
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("short", 0))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1625))
+                .addParametricCallback(0.20, () -> follower.setMaxPower(0.85))
+                .addParametricCallback(0.70, () -> follower.setMaxPower(0.75))
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -114,55 +118,54 @@ public class RedAutoCloseTurret extends OpMode {
                 .addPath(new BezierLine(scorePose, endPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading())
                 .build();
-
     }
 
     public void autonomousPathUpdate() {
+
         switch (pathState) {
+
+            // PRELOAD → SCORE 3
             case 0:
-                follower.followPath(startPreload);
+                shooter.setCurTargetVelocity("custom", 1685);
+                follower.getConstraints().setHeadingConstraint(3);
+                follower.followPath(startPreload, 1, true);
                 setPathState(1);
                 break;
 
             case 1:
-                // SHOOT SEQUENCE 1 START
-                if (!follower.isBusy()) {
-                    follower.followPath(score1, true);
-                    setPathState(2);
-                }
+                if (!follower.isBusy()) setPathState(2);
                 break;
+
             case 2:
-                if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() ) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(3);
-                    }
+                if (!follower.isBusy() && shooter.ShooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(3);
                 }
                 break;
+
             case 3:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
                     actionTimer.resetTimer();
                     setPathState(4);
                 }
-
                 break;
 
             case 4:
-                sorter.setSorterTarget(179.2);
-                if (sorter.SorterAtTarget()) {
+                target = INCREMENT * 2;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(5);
-                }
                 break;
+
             case 5:
-                // SHOOT SEQUENCE 2 START
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(6);
                 }
                 break;
+
             case 6:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -170,22 +173,21 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(7);
                 }
                 break;
+
             case 7:
-                sorter.setSorterTarget(358.4);
-                if (sorter.SorterAtTarget()) {
-
+                target = INCREMENT * 4;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(8);
-
-                }
                 break;
+
             case 8:
-                // SHOOT SEQUENCE 3 START
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(9);
                 }
                 break;
+
             case 9:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -193,40 +195,45 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(10);
                 }
                 break;
+
+            // GO TO LOW INTAKE
             case 10:
-                // GOING TO INTAKE 1
-                sorter.setSorterTarget(448);
+                target = INCREMENT * 6; // FIXED (was 5)
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(alignToLow, 1, true);
-                if (sorter.SorterAtTarget()) {
+                follower.getConstraints().setHeadingConstraint(8);
+                follower.followPath(alignToLowFromStart, 1, true);
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(11);
-                }
                 break;
+
             case 11:
                 if (!follower.isBusy()) {
                     intake.intakeOn();
-                    follower.followPath(intakeLow, 0.32, true);
+                    follower.getConstraints().setHeadingConstraint(8);
+                    follower.followPath(intakeLow, 0.41, true);
                     setPathState(12);
                 }
                 break;
+
+            // LOW → SCORE
             case 12:
                 if (!follower.isBusy()) {
                     intake.intakeOff();
-                    sorter.setSorterTarget(896);
-                    follower.followPath(scoreFromLow, true);
+                    target = INCREMENT * 10;
+                    follower.getConstraints().setHeadingConstraint(4);
+                    follower.followPath(scoreFromLow, 1, true);
                     setPathState(13);
                 }
                 break;
+
             case 13:
-                // SHOOTING SEQUENCE 1 (2nd time)
-                if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() ) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(14);
-                    }
+                if (!follower.isBusy() && shooter.ShooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(14);
                 }
                 break;
+
             case 14:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -234,20 +241,21 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(15);
                 }
                 break;
+
             case 15:
-                sorter.setSorterTarget(1075.2);
-                if (sorter.SorterAtTarget()) {
+                target = INCREMENT * 12;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(16);
-                }
                 break;
+
             case 16:
-                // SHOOT SEQUENCE 2 START (2nd time)
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(17);
                 }
                 break;
+
             case 17:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -255,20 +263,21 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(18);
                 }
                 break;
+
             case 18:
-                sorter.setSorterTarget(1254.4);
-                if (sorter.SorterAtTarget()) {
+                target = INCREMENT * 14;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(19);
-                }
                 break;
+
             case 19:
-                // SHOOT SEQUENCE 3 START (2nd time)
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(20);
                 }
                 break;
+
             case 20:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -276,39 +285,45 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(21);
                 }
                 break;
+
+            // GO TO MID INTAKE
             case 21:
-                // GOING TO INTAKE 2
-                sorter.setSorterTarget(1344);
+                target = INCREMENT * 16; // FIXED (was 15)
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(alignToMid, true);
-                if (sorter.SorterAtTarget()) {
+                follower.getConstraints().setHeadingConstraint(8);
+                follower.followPath(alignToMid, 1, true);
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(22);
-                }
                 break;
+
             case 22:
                 if (!follower.isBusy()) {
                     intake.intakeOn();
-                    follower.followPath(intakeMid, 0.32, true);
+                    follower.getConstraints().setHeadingConstraint(8);
+                    follower.followPath(intakeMid, 0.41, true);
                     setPathState(23);
                 }
                 break;
+
+            // MID → SCORE
             case 23:
                 if (!follower.isBusy()) {
+                    target = INCREMENT * 20;
                     intake.intakeOff();
-                    sorter.setSorterTarget(1792);
-                    follower.followPath(scoreFromMid, true);
+                    follower.getConstraints().setHeadingConstraint(4);
+                    follower.followPath(scoreFromMid, 1, true);
                     setPathState(24);
                 }
                 break;
+
             case 24:
-                if (!follower.isBusy()) {
-                    if (shooter.ShooterAtTarget() ) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(25);
-                    }
+                if (!follower.isBusy() && shooter.ShooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(25);
                 }
                 break;
+
             case 25:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -316,20 +331,21 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(26);
                 }
                 break;
+
             case 26:
-                sorter.setSorterTarget(1971.2);
-                if (sorter.SorterAtTarget()) {
+                target = INCREMENT * 22;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(27);
-                }
                 break;
+
             case 27:
-                // SHOOT SEQUENCE 2 START
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(28);
                 }
                 break;
+
             case 28:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -337,22 +353,21 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(29);
                 }
                 break;
+
             case 29:
-                sorter.setSorterTarget(2150.4);
-                if (sorter.SorterAtTarget()) {
-
+                target = INCREMENT * 24;
+                if (Math.abs(sorterMotor.getCurrentPosition() - target) < sorterTolerance)
                     setPathState(30);
-
-                }
                 break;
+
             case 30:
-                // SHOOT SEQUENCE 3 START
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(31);
                 }
                 break;
+
             case 31:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
@@ -360,144 +375,75 @@ public class RedAutoCloseTurret extends OpMode {
                     setPathState(32);
                 }
                 break;
+
+            // PARK
+            case 32:
+                follower.getConstraints().setHeadingConstraint(10);
+                follower.followPath(goToEnd, 1, true);
+                break;
         }
-
     }
-
-    /**
-
-     * These change the states of the paths and actions. It will also reset the timers of the individual switches
-
-     **/
 
     public void setPathState(int pState) {
-
         pathState = pState;
-
         pathTimer.resetTimer();
-
     }
 
-    /**
-
-     * This is the main loop of the OpMode, it will run repeatedly after clicking "Play".
-
-     **/
-
     @Override
-
     public void loop() {
-
         shooter.PIDFShootingLoop();
-
-        sorter.PIDFSorterLoop();
-
         pitch.pitchDown();
-
         turret.PIDFTurretLoop();
-
-        // These loop the movements of the robot, these must be called continuously in order to work
-
         follower.update();
-
         autonomousPathUpdate();
 
-        // Feedback to Driver Hub for debugging
+        sorterController.setPID(pSorting, iSorting, dSorting);
+        double currentPos = sorterMotor.getCurrentPosition();
+        double error = target - currentPos;
+        double pidOutput = sorterController.calculate(currentPos, target);
+        double staticFF = kSSorting * Math.signum(error);
+        sorterMotor.setPower(pidOutput + staticFF);
 
         telemetry.addData("path state", pathState);
-
-        telemetry.addData("x", follower.getPose().getX());
-
-        telemetry.addData("y", follower.getPose().getY());
-
-        telemetry.addData("heading", follower.getPose().getHeading());
-
+        telemetry.addData("sorter target", target);
+        telemetry.addData("sorter pos", currentPos);
         telemetry.update();
-
     }
 
-    /**
-
-     * This method is called once at the init of the OpMode.
-
-     **/
-
     @Override
-
     public void init() {
-
         pathTimer = new Timer();
-
         actionTimer = new Timer();
-
         opmodeTimer = new Timer();
-
         opmodeTimer.resetTimer();
 
         follower = Constants.createFollower(hardwareMap);
-
         buildPaths();
-
         follower.setStartingPose(startPose);
 
         intake.initIntake(hardwareMap);
-
         lever.initLever(hardwareMap);
-
         pitch.initPitch(hardwareMap);
-
         shooter.initShooter(hardwareMap);
-
-        sorter.initSorter(hardwareMap);
-
         turret.initTurret(hardwareMap, telemetry);
 
+        sorterController = new PIDController(pSorting, iSorting, dSorting);
+        sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
+        sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        sorterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sorterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         lever.leverDown();
-
         pitch.pitchUp();
-
     }
 
-    /**
-
-     * This method is called continuously after Init while waiting for "play".
-
-     **/
-
     @Override
-
-    public void init_loop() {
-
-    }
-
-    /**
-
-     * This method is called once at the start of the OpMode.
-
-     * It runs all the setup actions, including building paths and starting the path system
-
-     **/
-
-    @Override
-
     public void start() {
-
         opmodeTimer.resetTimer();
-
         setPathState(0);
-
     }
-
-    /**
-
-     * We do not use this because everything should automatically disable
-
-     **/
 
     @Override
-
-    public void stop() {
-
-    }
-
+    public void stop() {}
 }
