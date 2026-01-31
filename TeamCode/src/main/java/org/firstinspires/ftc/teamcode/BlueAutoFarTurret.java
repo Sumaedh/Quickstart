@@ -120,7 +120,7 @@ public class BlueAutoFarTurret extends OpMode {
                 if (!follower.isBusy()) setPathState(2);
                 break;
             case 2:
-                if (!follower.isBusy() && shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                if (!follower.isBusy() && shooter.ShooterAtTarget() ) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(3);
@@ -191,7 +191,7 @@ public class BlueAutoFarTurret extends OpMode {
                 }
                 break;
             case 13:
-                if (!follower.isBusy() && shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                if (!follower.isBusy() && shooter.ShooterAtTarget() ) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(14);
@@ -262,7 +262,7 @@ public class BlueAutoFarTurret extends OpMode {
                 }
                 break;
             case 24:
-                if (!follower.isBusy() && shooter.ShooterAtTarget() && turret.turretAtTarget()) {
+                if (!follower.isBusy() && shooter.ShooterAtTarget() ) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(25);
@@ -358,7 +358,7 @@ public class BlueAutoFarTurret extends OpMode {
         lever.initLever(hardwareMap);
         pitch.initPitch(hardwareMap);
         shooter.initShooter(hardwareMap);
-        turret.initTurret(hardwareMap);
+        turret.initTurret(hardwareMap, telemetry);
 
         sorterController = new PIDController(pSorting, iSorting, dSorting);
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");

@@ -20,7 +20,7 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.TimeUnit;
 
 @Config
-@TeleOp(name = "REAL TELEOP")
+@TeleOp(name = "REAL TELEOP 3")
 public class TeleopNewest3 extends OpMode {
 
     public double fShooting = 15;
