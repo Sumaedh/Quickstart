@@ -21,9 +21,9 @@ public class Turret {
     private PIDController controllerTurret;
 
     public static double pTurret = 0.03;
-    public static double iTurret = 0.001;
-    public static double dTurret = 0.0004;
-    public static double kFFTurret = 0.045;
+    public static double iTurret = 0.00;
+    public static double dTurret = 0.0002;
+    public static double kFFTurret = 0.02;
     public static double targetAngleTurret = 0;
 
     Limelight3A limelight;
