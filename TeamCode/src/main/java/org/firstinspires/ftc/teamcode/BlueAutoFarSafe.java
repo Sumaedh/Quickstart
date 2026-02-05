@@ -151,7 +151,7 @@ public class BlueAutoFarSafe extends OpMode {
                 }
                 break;
             case 5:
-                // SHOOT SEQUENCE 2 START
+                // SHOOT SEQUENCE 2 START ioiooiioio
                 if (shooter.ShooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
