@@ -33,8 +33,6 @@ public class BlueAutoFarSafe extends OpMode {
 
     Sorter sorter = new Sorter();
 
-    Turret turret = new Turret();
-
     // Poses
 
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
@@ -444,8 +442,6 @@ public class BlueAutoFarSafe extends OpMode {
         shooter.initShooter(hardwareMap);
 
         sorter.initSorter(hardwareMap);
-
-        turret.initTurret(hardwareMap, telemetry);
 
         lever.leverDown();
 
