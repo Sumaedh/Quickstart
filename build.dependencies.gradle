@@ -1,26 +1,37 @@
 repositories {
     mavenCentral()
-    google() // Needed for androidx
+    google()
+    maven { url = "https://repo.dairy.foundation/releases" }
+    maven { url = "https://repo.dairy.foundation/snapshots" }
     maven { url = "https://mymaven.bylazar.com/releases" }
-    maven { url = 'https://maven.brott.dev/' }
-
+    maven { url = "https://maven.brott.dev/" }
+    maven { url = "https://jitpack.io" }
+    maven { url = "https://maven.skeletonarmyftc.com/releases" }
 }
 
 dependencies {
-    implementation 'org.firstinspires.ftc:Inspection:11.0.0'
-    implementation 'org.firstinspires.ftc:Blocks:11.0.0'
-    implementation 'org.firstinspires.ftc:RobotCore:11.0.0'
-    implementation 'org.firstinspires.ftc:RobotServer:11.0.0'
-    implementation 'org.firstinspires.ftc:OnBotJava:11.0.0'
-    implementation 'org.firstinspires.ftc:Hardware:11.0.0'
-    implementation 'org.firstinspires.ftc:FtcCommon:11.0.0'
-    implementation 'org.firstinspires.ftc:Vision:11.0.0'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'org.ftclib.ftclib:core:2.1.1'
+    // FTC SDK
+    implementation 'org.firstinspires.ftc:Inspection:11.1.0'
+    implementation 'org.firstinspires.ftc:Blocks:11.1.0'
+    implementation 'org.firstinspires.ftc:RobotCore:11.1.0'
+    implementation 'org.firstinspires.ftc:RobotServer:11.1.0'
+    implementation 'org.firstinspires.ftc:OnBotJava:11.1.0'
+    implementation 'org.firstinspires.ftc:Hardware:11.1.0'
+    implementation 'org.firstinspires.ftc:FtcCommon:11.1.0'
+    implementation 'org.firstinspires.ftc:Vision:11.1.0'
 
-    implementation 'com.pedropathing:ftc:2.0.5'
-    implementation 'com.pedropathing:telemetry:1.0.0'
-    implementation 'com.bylazar:fullpanels:1.0.9'
+    // SolversLib + PedroPathing adapter
+    implementation "org.solverslib:core:0.3.3"
+    implementation "org.solverslib:pedroPathing:0.3.3"
+
+    // Pedro Pathing 2.x
+    implementation "com.pedropathing:ftc:2.0.6"
+    implementation "com.pedropathing:telemetry:1.0.0"
+
+    // ⭐ Correct Marrow dependency
+    implementation 'com.skeletonarmyftc.marrow:core:1.0.0'
+    // Dashboard / Lazar
     implementation 'com.acmerobotics.dashboard:dashboard:0.5.1'
+    implementation 'com.bylazar:fullpanels:1.0.9'
 }
 
