@@ -31,7 +31,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     private final Shooter shooter = new Shooter();
     private final Sorter sorter = new Sorter();
 
-    // Poses
+
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
     private final Pose secondPose = new Pose(55.6108, 14, Math.toRadians(90));
     private final Pose scorePose = new Pose(59.421, 15.18, Math.toRadians(124.5));
@@ -47,15 +47,13 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     private PathChain score1, alignToMid, intakeMid, scoreFromMid,
             alignToLow, intakeLow, scoreFromLow, goToEnd;
 
-    // --- Time awareness (Marrow-style) ---
-    private static final double AUTO_DURATION = 30.0; // seconds
-    private static final double SAFETY_MARGIN = 5.0;  // seconds
+    private static final double AUTO_DURATION = 30.0;
+    private static final double SAFETY_MARGIN = 5.0;
 
-    // --- Retry-style logic (Marrow-style) ---
-    private static final double SHOOTER_TIMEOUT = 1.5; // seconds to wait for shooter to reach target
+    private static final double SHOOTER_TIMEOUT = 1.5;
     private static final int SHOOTER_MAX_RETRIES = 1;
 
-    private static final double INTAKE_TIMEOUT = 2.0; // seconds to wait for intake path to finish
+    private static final double INTAKE_TIMEOUT = 2.0;
     private static final int INTAKE_MAX_RETRIES = 1;
 
     private int shooterRetryCount = 0;
@@ -63,8 +61,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     private final Timer shooterWaitTimer = new Timer();
     private final Timer intakeWaitTimer = new Timer();
 
-    // --- Simple "zone" (launch zone) polygon around scorePose ---
-    // This is a simple triangle; you can adjust coordinates as needed.
+
     private static class Point {
         final double x, y;
         Point(double x, double y) { this.x = x; this.y = y; }
@@ -77,7 +74,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     };
 
     private boolean isInLaunchZone(double x, double y) {
-        // Standard point-in-polygon (winding) algorithm for a simple polygon
+
         boolean inside = false;
         for (int i = 0, j = launchZone.length - 1; i < launchZone.length; j = i++) {
             Point pi = launchZone[i];
@@ -89,9 +86,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
         return inside;
     }
 
-    // -------------------------
-    // Path building
-    // -------------------------
+
     public void buildPaths() {
         startPreload = new Path(new BezierLine(startPose, secondPose));
         startPreload.setConstantHeadingInterpolation(secondPose.getHeading());
@@ -148,24 +143,21 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 .build();
     }
 
-    // -------------------------
-    // Time-aware decision logic
-    // -------------------------
+
 
     private double getEstimatedRemainingTimeFromState(int state) {
         switch (state) {
-            // Initial preload + first 3 shots
+
             case 0: case 1: case 2: case 3: case 4:
             case 5: case 6: case 7: case 8: case 9:
                 return 8.0;
 
-            // Low stack cycle
             case 10: case 11: case 12: case 13: case 14:
             case 15: case 16: case 17: case 18: case 19:
             case 20:
                 return 10.0;
 
-            // Mid stack cycle
+
             case 21: case 22: case 23: case 24: case 25:
             case 26: case 27: case 28: case 29: case 30:
             case 31:
@@ -185,12 +177,10 @@ public class BlueAutoFarSafeMarrow extends OpMode {
 
     private void bailToEndZone() {
         follower.followPath(goToEnd, true);
-        pathState = 100; // special parking state
+        pathState = 100;
     }
 
-    // -------------------------
-    // Retry-style helpers
-    // -------------------------
+
 
     private boolean ensureShooterAtTargetOrRetry(Runnable onGiveUp) {
         if (shooter.ShooterAtTarget()) {
@@ -247,9 +237,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
         return false;
     }
 
-    // -------------------------
-    // Main autonomous state machine
-    // -------------------------
+
 
     public void autonomousPathUpdate() {
         if (pathState <= 32 && shouldBailToPark()) {
@@ -541,24 +529,20 @@ public class BlueAutoFarSafeMarrow extends OpMode {
 
             case 100:
                 if (!follower.isBusy()) {
-                    // done parking
+
                 }
                 break;
         }
     }
 
-    // -------------------------
-    // Helpers
-    // -------------------------
+
 
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.resetTimer();
     }
 
-    // -------------------------
-    // OpMode lifecycle
-    // -------------------------
+
 
     @Override
     public void init() {
