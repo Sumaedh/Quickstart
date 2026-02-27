@@ -106,10 +106,20 @@ public class TeleopStates extends OpMode {
     }
      */
 
+        /*
         sorterMove();
 
         if (gamepad2.aWasPressed()) {
             target += INCREMENT;
+        }
+         */
+
+        if (gamepad1.a) {
+            sorterMotor.setPower(0.5);
+        } else if (gamepad1.y) {
+            sorterMotor.setPower(-0.5);
+        } else {
+            sorterMotor.setPower(0);
         }
 
         //TODO: LEVER
@@ -129,12 +139,12 @@ public class TeleopStates extends OpMode {
         }
         else if (shooterEnabled2 && !shooterEnabled1) {
             pitchServo.setPosition(0.45);
-            curTargetVelocity = 1680;
+            curTargetVelocity = 2000;
             fShooting = 15;
         }
         else if (!shooterEnabled2 && shooterEnabled1) {
             pitchServo.setPosition(0.75);
-            curTargetVelocity = 1420;
+            curTargetVelocity = 1650;
             fShooting = 15.25;
         }
         else if (shooterEnabled2 && shooterEnabled1) {
