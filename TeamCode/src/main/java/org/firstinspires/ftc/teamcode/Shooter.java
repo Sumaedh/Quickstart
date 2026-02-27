@@ -5,10 +5,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import java.util.Objects;
+
 public class Shooter {
     DcMotorEx shootingMotor;
 
-    public double fShooting = 15;
+    public double fShooting = 16.5;
     public double pShooting = 400;
     public double curTargetVelocity = 0;
 
@@ -44,13 +46,13 @@ public class Shooter {
 
 
     public void setCurTargetVelocity(String distance, double custom) {
-        if (distance == "long") {
+        if (Objects.equals(distance, "long")) {
             curTargetVelocity = LONG_VELOCITY;
-        } else if (distance == "short") {
+        } else if (Objects.equals(distance, "short")) {
             curTargetVelocity = SHORT_VELOCITY;
-        } else if (distance == "0") {
+        } else if (Objects.equals(distance, "0")) {
             curTargetVelocity = 0;
-        } else if (custom != 0 && distance == "custom"){
+        } else if (custom != 0 && Objects.equals(distance, "custom")){
             curTargetVelocity = custom;
         }
     }
@@ -67,10 +69,5 @@ public class Shooter {
         PIDFCoefficients newPidf = new PIDFCoefficients(pShooting, 0, 0, fShooting);
         shootingMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, newPidf);
         shootingMotor.setVelocity(curTargetVelocity);
-    }
-
-
-    public void setTargetVekocity(int i) {
-
     }
 }

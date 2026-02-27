@@ -7,17 +7,31 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Lever {
 
-    Servo leverServo;
+    Servo leftLeverServo;
+    Servo rightLeverServo;
+
+    double LEVER_UP_POS = 0.17;
+    double LEVER_DOWN_POS = 0.015;
 
     public void initLever(HardwareMap hwMap) {
-        leverServo = hwMap.get(Servo.class, "leverServo");
+        leftLeverServo = hwMap.get(Servo.class, "leftLeverServo");
+
+        leftLeverServo.setDirection(Servo.Direction.REVERSE);
+
+        rightLeverServo = hwMap.get(Servo.class, "rightLeverServo");
     }
 
     public void leverUp() {
-        leverServo.setPosition(0.2);
+        leftLeverServo.setPosition(LEVER_UP_POS);
+        rightLeverServo.setPosition(LEVER_UP_POS);
     }
 
     public void leverDown() {
-        leverServo.setPosition(0);
+        leftLeverServo.setPosition(LEVER_DOWN_POS);
+        rightLeverServo.setPosition(LEVER_DOWN_POS);
+    }
+
+    public double getLeverPos() {
+        return leftLeverServo.getPosition();
     }
 }

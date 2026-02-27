@@ -17,12 +17,11 @@ public class Sorter {
     private double pSorting = 0.004;
     private double iSorting = 0.0;
     private double dSorting = 0.00027;
-
     public static double kSSorting = 0.034;
 
     private static final double TICKS_PER_REV = 537.6 * (double)( 10 / 14);
 
-    public static double INCREMENT = TICKS_PER_REV / 6;
+    public static double INCREMENT = TICKS_PER_REV / 3;
 
     public double SORTER_TOLERANCE = 2.25;
 
