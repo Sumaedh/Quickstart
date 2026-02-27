@@ -36,6 +36,11 @@ public class TeleopStates extends OpMode {
     // TODO: TURRET
 
 
+    public void sorterMove() {
+        sorterMotor.setTargetPosition((int) target);
+        sorterMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        sorterMotor.setPower(1);
+    }
 
     @Override
     public void init() {
@@ -85,15 +90,10 @@ public class TeleopStates extends OpMode {
         }
          */
 
+        sorterMove();
+
         if (gamepad2.aWasPressed()) {
             target += INCREMENT;
-        }
-
-        sorterMotor.setTargetPosition((int) target);
-        sorterMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        sorterMotor.setPower(0.8);
-        if (sorterMotor.getCurrentPosition() == sorterMotor.getTargetPosition()) {
-            sorterMotor.setPower(0);
         }
 
         //TODO: LEVER
