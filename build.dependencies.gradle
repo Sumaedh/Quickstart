@@ -13,6 +13,7 @@ dependencies {
     // FTC SDK
     implementation 'org.firstinspires.ftc:Inspection:11.1.0'
     implementation 'org.firstinspires.ftc:Blocks:11.1.0'
+    //noinspection Aligned16KB
     implementation 'org.firstinspires.ftc:RobotCore:11.1.0'
     implementation 'org.firstinspires.ftc:RobotServer:11.1.0'
     implementation 'org.firstinspires.ftc:OnBotJava:11.1.0'
@@ -28,7 +29,6 @@ dependencies {
     implementation "com.pedropathing:ftc:2.0.6"
     implementation "com.pedropathing:telemetry:1.0.0"
 
-    // ⭐ Correct Marrow dependency
     implementation 'com.skeletonarmyftc.marrow:core:1.0.0'
     // Dashboard / Lazar
     implementation 'com.acmerobotics.dashboard:dashboard:0.5.1'

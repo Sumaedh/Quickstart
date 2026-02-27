@@ -19,11 +19,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @Autonomous(name = "Blue Auto Far Safe (Marrow)", group = "Marrow")
 public class BlueAutoFarSafeMarrow extends OpMode {
 
-    private Follower follower;
-
-    private Timer pathTimer, actionTimer, opmodeTimer;
-
-    private int pathState;
 
     private final Intake intake = new Intake();
     private final Lever lever = new Lever();
@@ -31,61 +26,58 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     private final Shooter shooter = new Shooter();
     private final Sorter sorter = new Sorter();
 
+    private Follower follower;
+    private Timer pathTimer, actionTimer, opmodeTimer;
+    private int pathState = 0;
+
 
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
     private final Pose secondPose = new Pose(55.6108, 14, Math.toRadians(90));
     private final Pose scorePose = new Pose(59.421, 15.18, Math.toRadians(124.5));
     private final Pose pickupLowPose = new Pose(48, 36, Math.toRadians(180));
     private final Pose pickupLowIntake3 = new Pose(24, 36, Math.toRadians(180));
-
-    private final Pose pickupMidPose = new Pose(44, 36 + 24, Math.toRadians(180));
-    private final Pose pickupMidIntake3 = new Pose(24, 36 + 24, Math.toRadians(180));
-
+    private final Pose pickupMidPose = new Pose(44, 60, Math.toRadians(180));
+    private final Pose pickupMidIntake3 = new Pose(24, 60, Math.toRadians(180));
     private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90));
 
+
     private Path startPreload;
-    private PathChain score1, alignToMid, intakeMid, scoreFromMid,
-            alignToLow, intakeLow, scoreFromLow, goToEnd;
+    private PathChain score1, alignToLow, intakeLow, scoreFromLow;
+    private PathChain alignToMid, intakeMid, scoreFromMid, goToEnd;
+
 
     private static final double AUTO_DURATION = 30.0;
     private static final double SAFETY_MARGIN = 5.0;
 
     private static final double SHOOTER_TIMEOUT = 1.5;
     private static final int SHOOTER_MAX_RETRIES = 1;
-
+    private int shooterRetryCount = 0;
+    private final Timer shooterWaitTimer = new Timer();
     private static final double INTAKE_TIMEOUT = 2.0;
     private static final int INTAKE_MAX_RETRIES = 1;
-
-    private int shooterRetryCount = 0;
     private int intakeRetryCount = 0;
-    private final Timer shooterWaitTimer = new Timer();
     private final Timer intakeWaitTimer = new Timer();
 
 
-    private static class Point {
-        final double x, y;
-        Point(double x, double y) { this.x = x; this.y = y; }
-    }
-
-    private final Point[] launchZone = new Point[] {
+    private static class Point { final double x, y; Point(double x, double y){this.x=x;this.y=y;} }
+    private final Point[] launchZone = new Point[]{
             new Point(56, 8),
             new Point(72, 24),
             new Point(40, 24)
     };
 
-    private boolean isInLaunchZone(double x, double y) {
 
+    private boolean isInLaunchZone(double x, double y) {
         boolean inside = false;
         for (int i = 0, j = launchZone.length - 1; i < launchZone.length; j = i++) {
             Point pi = launchZone[i];
             Point pj = launchZone[j];
             boolean intersect = ((pi.y > y) != (pj.y > y)) &&
-                    (x < (pj.x - pi.x) * (y - pi.y) / (pj.y - pi.y + 1e-6) + pi.x);
+                    (x < (pj.x - pi.x) * (y - pi.y) / ((pj.y - pi.y) + 1e-6) + pi.x);
             if (intersect) inside = !inside;
         }
         return inside;
     }
-
 
     public void buildPaths() {
         startPreload = new Path(new BezierLine(startPose, secondPose));
@@ -143,11 +135,33 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 .build();
     }
 
+    @Override
+    public void init() {
+        pathTimer = new Timer();
+        actionTimer = new Timer();
+        opmodeTimer = new Timer();
 
+        follower = Constants.createFollower(hardwareMap);
+        buildPaths();
+        follower.setStartingPose(startPose);
+
+        intake.initIntake(hardwareMap);
+        lever.initLever(hardwareMap);
+        pitch.initPitch(hardwareMap);
+        shooter.initShooter(hardwareMap);
+        sorter.initSorter(hardwareMap);
+
+        lever.leverDown();
+        pitch.pitchUp();
+    }
+
+    private void setPathState(int pState) {
+        pathState = pState;
+        pathTimer.resetTimer();
+    }
 
     private double getEstimatedRemainingTimeFromState(int state) {
         switch (state) {
-
             case 0: case 1: case 2: case 3: case 4:
             case 5: case 6: case 7: case 8: case 9:
                 return 8.0;
@@ -155,11 +169,17 @@ public class BlueAutoFarSafeMarrow extends OpMode {
             case 10: case 11: case 12: case 13: case 14:
             case 15: case 16: case 17: case 18: case 19:
             case 20:
-                return 10.0;
 
-
-            case 21: case 22: case 23: case 24: case 25:
-            case 26: case 27: case 28: case 29: case 30:
+            case 21:
+            case 22:
+            case 23:
+            case 24:
+            case 25:
+            case 26:
+            case 27:
+            case 28:
+            case 29:
+            case 30:
             case 31:
                 return 10.0;
 
@@ -181,8 +201,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     }
 
 
-
-    private boolean ensureShooterAtTargetOrRetry(Runnable onGiveUp) {
+    private boolean ensureShooterAtTargetOrRetry() {
         if (shooter.ShooterAtTarget()) {
             shooterRetryCount = 0;
             return true;
@@ -198,18 +217,18 @@ public class BlueAutoFarSafeMarrow extends OpMode {
             if (shooterRetryCount < SHOOTER_MAX_RETRIES) {
                 shooterRetryCount++;
                 shooterWaitTimer.resetTimer();
-                return false;
             } else {
                 shooterRetryCount = 0;
-                if (onGiveUp != null) onGiveUp.run();
-                return false;
             }
+            return false;
         }
 
         return false;
     }
 
-    private boolean ensureIntakeFinishedOrRetry(boolean pathBusy, Runnable startIntakePath, Runnable onGiveUp) {
+    private boolean ensureIntakeFinishedOrRetry(boolean pathBusy,
+                                                Runnable startIntakePath,
+                                                Runnable onGiveUp) {
         if (!pathBusy) {
             intakeRetryCount = 0;
             return true;
@@ -226,17 +245,22 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 intakeRetryCount++;
                 intakeWaitTimer.resetTimer();
                 if (startIntakePath != null) startIntakePath.run();
-                return false;
             } else {
                 intakeRetryCount = 0;
                 if (onGiveUp != null) onGiveUp.run();
-                return false;
             }
+            return false;
         }
 
         return false;
     }
 
+    private void moveSorterTo(double ticks, int nextState) {
+        sorter.setSorterTarget(ticks);
+        if (!sorter.isBusy()) {
+            setPathState(nextState);
+        }
+    }
 
 
     public void autonomousPathUpdate() {
@@ -265,7 +289,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                         bailToEndZone();
                         break;
                     }
-                    if (ensureShooterAtTargetOrRetry(null)) {
+                    if (ensureShooterAtTargetOrRetry()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(3);
@@ -282,14 +306,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 4:
-                sorter.setSorterTarget(179.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(5);
-                }
+                moveSorterTo(179.2, 5);
                 break;
 
             case 5:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(6);
@@ -305,14 +326,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 7:
-                sorter.setSorterTarget(358.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(8);
-                }
+                moveSorterTo(358.4, 8);
                 break;
 
             case 8:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(9);
@@ -331,7 +349,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLow, true);
-                if (sorter.SorterAtTarget()) {
+                if (!sorter.isBusy()) {
                     setPathState(11);
                 }
                 break;
@@ -349,7 +367,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 if (ensureIntakeFinishedOrRetry(
                         follower.isBusy(),
                         () -> follower.followPath(intakeLow, 0.32, true),
-                        () -> intake.intakeOff()
+                        intake::intakeOff
                 )) {
                     intake.intakeOff();
                     sorter.setSorterTarget(896);
@@ -365,7 +383,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                         bailToEndZone();
                         break;
                     }
-                    if (ensureShooterAtTargetOrRetry(null)) {
+                    if (ensureShooterAtTargetOrRetry()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(14);
@@ -382,14 +400,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 15:
-                sorter.setSorterTarget(1075.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(16);
-                }
+                moveSorterTo(1075.2, 16);
                 break;
 
             case 16:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(17);
@@ -405,14 +420,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 18:
-                sorter.setSorterTarget(1254.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(19);
-                }
+                moveSorterTo(1254.4, 19);
                 break;
 
             case 19:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(20);
@@ -431,7 +443,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(1344);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, true);
-                if (sorter.SorterAtTarget()) {
+                if (!sorter.isBusy()) {
                     setPathState(22);
                 }
                 break;
@@ -449,7 +461,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 if (ensureIntakeFinishedOrRetry(
                         follower.isBusy(),
                         () -> follower.followPath(intakeMid, 0.32, true),
-                        () -> intake.intakeOff()
+                        intake::intakeOff
                 )) {
                     intake.intakeOff();
                     sorter.setSorterTarget(1792);
@@ -465,7 +477,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                         bailToEndZone();
                         break;
                     }
-                    if (ensureShooterAtTargetOrRetry(null)) {
+                    if (ensureShooterAtTargetOrRetry()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(25);
@@ -482,14 +494,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 26:
-                sorter.setSorterTarget(1971.2);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(27);
-                }
+                moveSorterTo(1971.2, 27);
                 break;
 
             case 27:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(28);
@@ -505,14 +514,11 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 29:
-                sorter.setSorterTarget(2150.4);
-                if (sorter.SorterAtTarget()) {
-                    setPathState(30);
-                }
+                moveSorterTo(2150.4, 30);
                 break;
 
             case 30:
-                if (ensureShooterAtTargetOrRetry(null)) {
+                if (ensureShooterAtTargetOrRetry()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(31);
@@ -528,45 +534,10 @@ public class BlueAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 100:
-                if (!follower.isBusy()) {
-
-                }
                 break;
         }
     }
 
-
-
-    public void setPathState(int pState) {
-        pathState = pState;
-        pathTimer.resetTimer();
-    }
-
-
-
-    @Override
-    public void init() {
-        pathTimer = new Timer();
-        actionTimer = new Timer();
-        opmodeTimer = new Timer();
-        opmodeTimer.resetTimer();
-
-        follower = Constants.createFollower(hardwareMap);
-        buildPaths();
-        follower.setStartingPose(startPose);
-
-        intake.initIntake(hardwareMap);
-        lever.initLever(hardwareMap);
-        pitch.initPitch(hardwareMap);
-        shooter.initShooter(hardwareMap);
-        sorter.initSorter(hardwareMap);
-
-        lever.leverDown();
-        pitch.pitchUp();
-    }
-
-    @Override
-    public void init_loop() { }
 
     @Override
     public void start() {
@@ -577,7 +548,7 @@ public class BlueAutoFarSafeMarrow extends OpMode {
     @Override
     public void loop() {
         shooter.PIDFShootingLoop();
-        sorter.PIDFSorterLoop();
+        sorter.update();
         pitch.pitchDown();
 
         follower.update();
@@ -595,6 +566,4 @@ public class BlueAutoFarSafeMarrow extends OpMode {
         telemetry.update();
     }
 
-    @Override
-    public void stop() { }
 }
