@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
 public class TeleopStates extends OpMode {
-
     //TODO: DRIVETRAIN
     DrivetrainClass dt = new DrivetrainClass();
 
@@ -31,9 +30,13 @@ public class TeleopStates extends OpMode {
     Servo pitchServo;
 
     // TODO: SHOOTER
-    Shooter sh = new Shooter();
+    DcMotorEx shootingMotor;
+    public double fShooting = 15;
+    public double fShootingshort = 15.25;
+    public double pShooting = 250;
+    public double curTargetVelocity = 0;
 
-    // TODO: TURRET
+// TODO: TURRET
 
 
     public void sorterMove() {
@@ -47,7 +50,6 @@ public class TeleopStates extends OpMode {
         dt.initDrivetrain(hardwareMap);
         in.initIntake(hardwareMap);
         //sr.initSorter(hardwareMap);
-        sh.initShooter(hardwareMap);
 
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -62,6 +64,20 @@ public class TeleopStates extends OpMode {
 
         lv.leftLeverServo.setPosition(0);
         lv.rightLeverServo.setPosition(0);
+
+        // SHOOTER INIT
+        shootingMotor = hardwareMap.get(DcMotorEx.class, "shootingMotor");
+
+        PIDFCoefficients pidfShooting =
+                new PIDFCoefficients(pShooting, 0, 0, fShooting);
+        shootingMotor.setPIDFCoefficients(
+                DcMotor.RunMode.RUN_USING_ENCODER, pidfShooting
+        );
+
+        shootingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        pitchServo.setPosition(0.42);
 
         telemetry.addLine("Initialized");
     }
@@ -84,11 +100,11 @@ public class TeleopStates extends OpMode {
         // TODO: SORTER
         //sr.PIDFSorterLoop();
 
-        /*
-        if (gamepad1.aWasPressed()) {
-            sr.setSorterTarget(1);
-        }
-         */
+    /*
+    if (gamepad1.aWasPressed()) {
+        sr.setSorterTarget(1);
+    }
+     */
 
         sorterMove();
 
@@ -104,29 +120,31 @@ public class TeleopStates extends OpMode {
         }
 
         // TODO: SHOOTER
-        sh.PIDFShootingLoop();
-
         boolean shooterEnabled1 = gamepad2.left_trigger > 0.75;
         boolean shooterEnabled2 = gamepad2.right_trigger > 0.75;
 
         if (!shooterEnabled2 && !shooterEnabled1) {
             pitchServo.setPosition(0.75);
-            sh.setCurTargetVelocity("0", 0);
+            curTargetVelocity = 0;
         }
         else if (shooterEnabled2 && !shooterEnabled1) {
             pitchServo.setPosition(0.45);
-            sh.setCurTargetVelocity("long", 0);
-            sh.fShooting = 15;
+            curTargetVelocity = 1680;
+            fShooting = 15;
         }
         else if (!shooterEnabled2 && shooterEnabled1) {
             pitchServo.setPosition(0.75);
-            sh.setCurTargetVelocity("short", 0);
-            sh.fShooting = 15.25;
+            curTargetVelocity = 1420;
+            fShooting = 15.25;
         }
         else if (shooterEnabled2 && shooterEnabled1) {
             pitchServo.setPosition(0.75);
-            sh.setCurTargetVelocity("0", 0);
+            curTargetVelocity = 0;
         }
+
+        PIDFCoefficients newPidf = new PIDFCoefficients(pShooting, 0, 0, fShooting);
+        shootingMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, newPidf);
+        shootingMotor.setVelocity(curTargetVelocity);
 
         // TODO: TURRET
 
