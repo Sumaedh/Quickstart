@@ -9,7 +9,6 @@ public class ColorSensorTest extends OpMode {
 
     private ColorSensor colorSensor;
 
-    // Tune these based on your spindexer lighting
     private static final int GREEN_THRESHOLD = 120;
     private static final int PURPLE_THRESHOLD = 120;
 
