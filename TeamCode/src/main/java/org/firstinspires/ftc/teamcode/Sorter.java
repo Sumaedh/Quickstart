@@ -21,7 +21,7 @@ public class Sorter {
 
     private static final double TICKS_PER_REV = 537.6 * (double)( 10 / 14);
 
-    public static double INCREMENT = TICKS_PER_REV / 3;
+    public double INCREMENT = TICKS_PER_REV / 3;
 
     public double SORTER_TOLERANCE = 2.25;
 
@@ -71,5 +71,12 @@ public class Sorter {
         double motorPower = pidOutput + staticFF;
 
         sorterMotor.setPower(motorPower);
+    }
+
+    public void update() {
+    }
+
+    public boolean isBusy() {
+        return false;
     }
 }

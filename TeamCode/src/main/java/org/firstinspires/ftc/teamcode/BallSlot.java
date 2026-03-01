@@ -48,10 +48,10 @@ public class BallSlot {
         hasBall = dist > 0 && dist < BALL_DETECTION_DISTANCE_INCH;
     }
 
-    public void detectColor() {
+    public String detectColor() {
         if (!hasBall) {
             detectedColor = BallColor.UNKNOWN;
-            return;
+            return "unknown";
         }
 
         int r = colorSensor.red();
@@ -60,24 +60,37 @@ public class BallSlot {
 
         if (g > GREEN_THRESHOLD && g > r && g > b) {
             detectedColor = BallColor.GREEN;
+            return "green";
         } else if (((r + b) / 2) > PURPLE_THRESHOLD && (r + b) > g) {
             detectedColor = BallColor.PURPLE;
+            return "purple";
         } else {
             detectedColor = BallColor.UNKNOWN;
+            return "unknown";
         }
     }
 
     public boolean shouldIntake() {
 
+        /*
         if (forcedDecision != null) {
             return forcedDecision;
         }
 
+         */
+
         detectBall();
         detectColor();
 
-        if (!hasBall) return true;
+        if (!hasBall) {
+            return true;
+        }
+        else  {
+            return false;
+        }
 
+
+        /*
         switch (detectedColor) {
             case GREEN:
                 return acceptGreen;
@@ -89,6 +102,8 @@ public class BallSlot {
             default:
                 return acceptUnknown;
         }
+
+         */
     }
 
     public void setAcceptGreen(boolean accept) { this.acceptGreen = accept; }

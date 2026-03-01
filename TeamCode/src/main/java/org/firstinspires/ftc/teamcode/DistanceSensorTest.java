@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
 @TeleOp(name = "Distance Sensor Test")
@@ -18,6 +19,7 @@ public class DistanceSensorTest extends OpMode {
     public static double BALL_DETECT_THRESHOLD_INCHES = 1.0;
 
     private FtcDashboard dashboard;
+    private Telemetry dashboardTelemetry;
 
     @Override
     public void init() {
@@ -26,6 +28,7 @@ public class DistanceSensorTest extends OpMode {
         distanceSensor3 = hardwareMap.get(DistanceSensor.class, "distanceSensor3");
 
         dashboard = FtcDashboard.getInstance();
+        dashboardTelemetry = dashboard.getTelemetry();
 
         telemetry.addLine("All 3 Distance Sensors Initialized");
         telemetry.update();
@@ -39,7 +42,7 @@ public class DistanceSensorTest extends OpMode {
         sendSensorData("Sensor 3", distanceSensor3);
 
         telemetry.update();
-        dashboard.getTelemetry().update();
+        dashboardTelemetry.update();
     }
 
     private void sendSensorData(String name, DistanceSensor sensor) {
@@ -50,8 +53,8 @@ public class DistanceSensorTest extends OpMode {
         telemetry.addData("  Distance (in)", distInches);
         telemetry.addData("  Ball Detected", ballDetected);
 
-        dashboard.getTelemetry().addLine(name);
-        dashboard.getTelemetry().addData("  Distance (in)", distInches);
-        dashboard.getTelemetry().addData("  Ball Detected", ballDetected);
+        dashboardTelemetry.addLine(name);
+        dashboardTelemetry.addData("  Distance (in)", distInches);
+        dashboardTelemetry.addData("  Ball Detected", ballDetected);
     }
 }
