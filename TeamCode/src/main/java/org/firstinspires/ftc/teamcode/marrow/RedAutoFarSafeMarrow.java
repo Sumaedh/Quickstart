@@ -89,7 +89,13 @@ public class RedAutoFarSafeMarrow extends OpMode {
 
         score1 = follower.pathBuilder()
                 .addPath(new BezierLine(secondPose, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("custom", 1630))
+                .addParametricCallback(0.01, () -> {
+                    Pose cur = follower.getPose();
+                    double dx = 144.0 - cur.getX();
+                    double dy = 72.0 - cur.getY();
+                    double d = Math.hypot(dx, dy);
+                    shooter.setCurTargetVelocityDynamic(d);
+                })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
                 .build();
@@ -109,7 +115,13 @@ public class RedAutoFarSafeMarrow extends OpMode {
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1630))
+                .addParametricCallback(0.01, () -> {
+                    Pose cur = follower.getPose();
+                    double dx = 144.0 - cur.getX();
+                    double dy = 72.0 - cur.getY();
+                    double d = Math.hypot(dx, dy);
+                    shooter.setCurTargetVelocityDynamic(d);
+                })
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .build();
 
@@ -128,7 +140,13 @@ public class RedAutoFarSafeMarrow extends OpMode {
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierLine(pickupMidIntake3, scorePose))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("custom", 1630))
+                .addParametricCallback(0.01, () -> {
+                    Pose cur = follower.getPose();
+                    double dx = 144.0 - cur.getX();
+                    double dy = 72.0 - cur.getY();
+                    double d = Math.hypot(dx, dy);
+                    shooter.setCurTargetVelocityDynamic(d);
+                })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .build();
@@ -207,7 +225,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
     }
 
     private boolean ensureShooterAtTargetOrRetry() {
-        if (shooter.ShooterAtTarget()) {
+        if (shooter.shooterAtTarget()) {
             shooterRetryCount = 0;
             return true;
         }
@@ -262,14 +280,15 @@ public class RedAutoFarSafeMarrow extends OpMode {
 
     private void moveSorterTo(double ticks, int nextState) {
         sorter.setSorterTarget(ticks);
-        if (!sorter.isBusy()) {
+        if (sorter.isBusy()) {
             setPathState(nextState);
         }
     }
 
 
     public void autonomousPathUpdate() {
-
+        Pose cur;
+        double dx, dy, d;
         if (pathState <= 32 && shouldBailToPark()) {
             bailToEndZone();
             return;
@@ -350,7 +369,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLow, true);
-                if (!sorter.isBusy()) setPathState(11);
+                if (sorter.isBusy()) setPathState(11);
                 break;
 
             case 11:
@@ -436,7 +455,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(1344);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, true);
-                if (!sorter.isBusy()) setPathState(22);
+                if (sorter.isBusy()) setPathState(22);
                 break;
 
             case 22:

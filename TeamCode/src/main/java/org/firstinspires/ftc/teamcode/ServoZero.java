@@ -56,3 +56,6 @@ public class ServoZero extends LinearOpMode {
         }
     }
 }
+
+// leverPos is 0.038 at minimum 0.22 at maximum
+// pitchPos is 0.73 at minimum 0 at maximum
