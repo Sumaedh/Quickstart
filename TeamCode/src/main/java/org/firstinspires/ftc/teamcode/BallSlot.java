@@ -13,9 +13,9 @@ public class BallSlot {
     private boolean hasBall = false;
     private BallColor detectedColor = BallColor.UNKNOWN;
 
-    private static final double BALL_DETECTION_DISTANCE_CM = 4.0;
-    private static final int PURPLE_THRESHOLD = 200;
-    private static final int GREEN_THRESHOLD = 200;
+    public static double BALL_DETECTION_DISTANCE_INCH = 1.0;
+    public static int PURPLE_THRESHOLD = 120;
+    public static int GREEN_THRESHOLD = 120;
 
     private boolean acceptGreen = true;
     private boolean acceptPurple = true;
@@ -34,16 +34,19 @@ public class BallSlot {
         this.colorSensor = colorSensor;
     }
 
+    public BallSlot(HardwareMap hwMap, String distanceName, String colorName) {
+        initSlot(hwMap, distanceName, colorName);
+    }
+
     public void initSlot(HardwareMap hwMap, String distanceName, String colorName) {
-        distanceSensor = hwMap.get(DistanceSensor.class, distanceName);
-        colorSensor = hwMap.get(ColorSensor.class, colorName);
+        this.distanceSensor = hwMap.get(DistanceSensor.class, distanceName);
+        this.colorSensor = hwMap.get(ColorSensor.class, colorName);
     }
 
     public void detectBall() {
-        double dist = distanceSensor.getDistance(DistanceUnit.CM);
-        hasBall = dist < BALL_DETECTION_DISTANCE_CM;
+        double dist = distanceSensor.getDistance(DistanceUnit.INCH);
+        hasBall = dist > 0 && dist < BALL_DETECTION_DISTANCE_INCH;
     }
-
 
     public void detectColor() {
         if (!hasBall) {
@@ -57,16 +60,12 @@ public class BallSlot {
 
         if (g > GREEN_THRESHOLD && g > r && g > b) {
             detectedColor = BallColor.GREEN;
-        }
-        else if (((r + b) / 2) > PURPLE_THRESHOLD && (r + b) > g) {
+        } else if (((r + b) / 2) > PURPLE_THRESHOLD && (r + b) > g) {
             detectedColor = BallColor.PURPLE;
-        }
-        else {
+        } else {
             detectedColor = BallColor.UNKNOWN;
         }
-
     }
-
 
     public boolean shouldIntake() {
 
@@ -92,34 +91,13 @@ public class BallSlot {
         }
     }
 
+    public void setAcceptGreen(boolean accept) { this.acceptGreen = accept; }
+    public void setAcceptPurple(boolean accept) { this.acceptPurple = accept; }
+    public void setAcceptUnknown(boolean accept) { this.acceptUnknown = accept; }
 
-    public void setAcceptGreen(boolean accept) {
-        this.acceptGreen = accept;
-    }
+    public void forceIntake(boolean intake) { this.forcedDecision = intake; }
+    public void clearOverride() { this.forcedDecision = null; }
 
-    public void setAcceptPurple(boolean accept) {
-        this.acceptPurple = accept;
-    }
-
-    public void setAcceptUnknown(boolean accept) {
-        this.acceptUnknown = accept;
-    }
-
-
-    public void forceIntake(boolean intake) {
-        this.forcedDecision = intake;
-    }
-
-    public void clearOverride() {
-        this.forcedDecision = null;
-    }
-
-
-    public boolean HasBall() {
-        return hasBall;
-    }
-
-    public BallColor getDetectedColor() {
-        return detectedColor;
-    }
+    public boolean hasBall() { return hasBall; }
+    public BallColor getDetectedColor() { return detectedColor; }
 }
