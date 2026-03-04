@@ -27,16 +27,8 @@ public class SorterPID extends OpMode {
 
     // TODO: find lever pos
     double leverPos = 0.5;
-
-    DcMotor intakeMotor;
-    Servo pitchServo;
-    DcMotor rotationMotor;
-    DcMotor shootingMotor;
     DcMotor sorterMotor;
     Servo leverServo;
-    //ColorSensor colorSensor;
-    HuskyLens huskyLens;
-    HuskyLens huskyLens2;
     Deadline rateLimit;
 
     public static double integralSum = 0;
@@ -76,17 +68,7 @@ public class SorterPID extends OpMode {
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
         // provide positional information.
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        pitchServo = hardwareMap.get(Servo.class,"pitchServo");
-        rotationMotor = hardwareMap.get(DcMotor.class, "rotationMotor");
-        shootingMotor = hardwareMap.get(DcMotor.class, "shootingMotor");
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
-        huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
-        leverServo = hardwareMap.get(Servo.class,"leverServo");
-
-        rotationMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         sorterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -97,18 +79,7 @@ public class SorterPID extends OpMode {
         rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
         rateLimit.expire();
 
-        leverServo.setPosition(0);
-
         // Choose the algorithm
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
-        // huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
-
-        // Set up parameters for turret orientation (adjust based on mounting)
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
-        );
-
         // Initialize
 
 

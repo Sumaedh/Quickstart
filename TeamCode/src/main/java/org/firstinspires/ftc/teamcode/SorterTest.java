@@ -27,31 +27,18 @@ public class SorterTest extends OpMode {
     final int READ_PERIOD = 1;
 
     // TODO: find lever pos
-    double leverPos = 0.5;
-
-    DcMotor intakeMotor;
-    Servo pitchServo;
-    DcMotor rotationMotor;
-    DcMotor shootingMotor;
     DcMotor sorterMotor;
-    Servo leverServo;
-    //ColorSensor colorSensor;
-    HuskyLens huskyLens;
-    HuskyLens huskyLens2;
     Deadline rateLimit;
 
-    DistanceSensor distanceSensor2;
-
     public static double integralSum = 0;
-    public static double p = 0.007;
+    public static double p = 0.0083;
     public static double i = 0.0;
-    public static double d = 0.00033;
-
-    public static double kS = 0.02;
+    public static double d = 0.0002;
+    public static double kS = 0.0;
 
     private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
 
-    public static double INCREMENT = TICKS_PER_REV / 6;
+    public static double INCREMENT = TICKS_PER_REV / 3;
 
     double target = 0;
 
@@ -78,20 +65,9 @@ public class SorterTest extends OpMode {
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
         // provide positional information.
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        pitchServo = hardwareMap.get(Servo.class,"pitchServo");
-        rotationMotor = hardwareMap.get(DcMotor.class, "rotationMotor");
-        shootingMotor = hardwareMap.get(DcMotor.class, "shootingMotor");
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
-        huskyLens2 = hardwareMap.get(HuskyLens.class, "huskylens2");
         sorterMotor = hardwareMap.get(DcMotor.class, "sorterMotor");
-        leverServo = hardwareMap.get(Servo.class,"leverServo");
-        distanceSensor2 = hardwareMap.get(DistanceSensor.class, "distanceSensor2");
 
-        rotationMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rotationMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        sorterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        sorterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         sorterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // Added: For direct power control in PID
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // Added: To hold position
@@ -100,10 +76,6 @@ public class SorterTest extends OpMode {
         rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
         rateLimit.expire();
 
-        leverServo.setPosition(0);
-
-        // Choose the algorithm
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
         // huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
 
         // Set up parameters for turret orientation (adjust based on mounting)
@@ -129,38 +101,30 @@ public class SorterTest extends OpMode {
             boostTimer.reset();
         }
 
-        if (gamepad1.yWasPressed()) {
-            target += (INCREMENT * 2);
-            boostActive = true;
-            boostTimer.reset();
-        }
-
-        if (gamepad1.xWasPressed()) {
-            target += (INCREMENT * 3);
-            boostTimer.reset();
-        }
-
         controller.setPID(p, i, d);
         double currentPos = sorterMotor.getCurrentPosition();
         double error = target - currentPos;
 
         double motorPower;
 
+        /*
         // BOOST PHASE: Full power for 0.25s when target changes
         if (boostActive && boostTimer.seconds() < 0.1) {
             // Full speed in the direction we need to go
             // Use Math.signum(error) to get -1 or 1 based on direction
             motorPower = Math.signum(error); // or 0.8 if full power is too violent
         }
-        // PID PHASE: Normal control after 0.25s or if boost finished
-        else {
-            boostActive = false; // Reset flag
-            double pidOutput = controller.calculate(currentPos, target);
-            double staticFF = kS * Math.signum(error);
-            motorPower = pidOutput + staticFF;
-        }
 
-        sorterMotor.setPower(motorPower);
+         */
+        // PID PHASE: Normal control after 0.25s or if boost finished
+
+        boostActive = false; // Reset flag
+        double pidOutput = controller.calculate(currentPos, target);
+        //double staticFF = kS * Math.signum(error);
+        //motorPower = pidOutput + staticFF;
+
+
+        sorterMotor.setPower(pidOutput);
 
         telemetry.addData("Boost Active: ", boostActive);
         telemetry.addData("Boost Time: ", boostActive ? boostTimer.seconds() : 0);
