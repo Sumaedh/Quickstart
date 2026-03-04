@@ -538,7 +538,6 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 break;
 
             case 32:
-                // Finished all cycles — go to end zone if needed
                 follower.followPath(goToEnd, true);
                 setPathState(100);
                 break;
