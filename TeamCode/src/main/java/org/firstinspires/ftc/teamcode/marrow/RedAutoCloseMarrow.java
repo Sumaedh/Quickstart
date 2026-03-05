@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode.marrow;
-
+/*
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
@@ -642,3 +642,5 @@ public class RedAutoCloseMarrow extends OpMode {
         telemetry.update();
     }
 }
+
+ */

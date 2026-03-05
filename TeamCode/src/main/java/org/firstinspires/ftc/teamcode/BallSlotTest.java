@@ -29,6 +29,98 @@ public class BallSlotTest extends OpMode {
 
     BallSlot[] ballSlots = {ballSlot1, ballSlot2, ballSlot3};
 
+    public enum BallSlotStates {
+        MANUAL,
+        SHOOTING_LOGIC,
+        AUTOSPINNER,
+        COLOR_PICKER;
+    }
+
+    private BallSlotStates currentState;
+    public void setBallSlotState(BallSlotStates newState) {
+        currentState = newState;
+    }
+
+    private void autosortStateMachine() {
+        switch (currentState) {
+            case AUTOSPINNER:
+                if (ballSlot2.hasBall() && sorter.sorterAtTarget()) {
+                    for (int i= 0; i < 3; i++) {
+                        // currentslot = ballSlots[i];
+                        if (!ballSlots[i].hasBall() && i == 0) {
+                            sorter.turnSorter(1);
+                        } else if (!ballSlots[i].hasBall() && i == 2) {
+                            sorter.target -= sorter.INCREMENT;
+                        }
+                    }
+                }
+
+                if ((sorter.sorterAtTarget() && ballSlot1.hasBall() && ballSlot2.hasBall() && ballSlot3.hasBall()) || gamepad1.x) {
+                    setBallSlotState(BallSlotStates.SHOOTING_LOGIC);
+                } else if (gamepad1.y) {
+                    setBallSlotState(BallSlotStates.MANUAL);
+                } else if (gamepad1.b) {
+                    setBallSlotState(BallSlotStates.COLOR_PICKER);
+                }
+                break;
+            case SHOOTING_LOGIC:
+                // TODO: SHOOTING LOGIC HERE
+
+                if ((sorter.sorterAtTarget() && !ballSlot1.hasBall() && !ballSlot2.hasBall() && !ballSlot3.hasBall()) || gamepad1.x) {
+                    setBallSlotState(BallSlotStates.AUTOSPINNER);
+                } else if (gamepad1.y) {
+                    setBallSlotState(BallSlotStates.MANUAL);
+                } else if (gamepad1.b) {
+                    setBallSlotState(BallSlotStates.COLOR_PICKER);
+                }
+                break;
+            case MANUAL:
+                if (gamepad2.aWasPressed()) {
+                    sorter.target += sorter.INCREMENT;
+                }
+                if (gamepad1.y) {
+                    setBallSlotState(BallSlotStates.AUTOSPINNER);
+                } else if (gamepad1.b) {
+                    setBallSlotState(BallSlotStates.COLOR_PICKER);
+                }
+                break;
+            case COLOR_PICKER:
+                // GREEN IS RIGHT BUMPER, LEFT BUMPER FOR PURPLE
+                if (gamepad1.rightBumperWasPressed() && sorter.sorterAtTarget()) {
+                    for (int i = ballSlots.length - 1; i >= 0; i--) {
+                        // currentslot = ballSlots[i];
+                        if (ballSlots[i].detectColor().equals("green") && i == 2 && sorter.sorterAtTarget()) {
+                            break;
+                        }
+                        else if (ballSlots[i].detectColor().equals("green") && i == 1 && sorter.sorterAtTarget()) {
+                            sorter.turnSorter(1);
+                        } else if (ballSlots[i].detectColor().equals("green") && i == 0 && sorter.sorterAtTarget()) {
+                            sorter.target -= sorter.INCREMENT;
+                        }
+                    }
+                }
+
+                if (gamepad1.leftBumperWasPressed() && sorter.sorterAtTarget()) {
+                    for (int i = ballSlots.length - 1; i >= 0; i--) {
+                        // currentslot = ballSlots[i];
+                        if (ballSlots[i].detectColor().equals("purple") && i == 1 && sorter.sorterAtTarget()) {
+                            sorter.turnSorter(1);
+                        } else if (ballSlots[i].detectColor().equals("purple") && i == 0 && sorter.sorterAtTarget()) {
+                            sorter.target -= sorter.INCREMENT;
+                        }
+                    }
+                }
+
+                if (gamepad1.x) {
+                    setBallSlotState(BallSlotStates.MANUAL);
+                } else if (gamepad1.y) {
+                    setBallSlotState(BallSlotStates.AUTOSPINNER);
+                }
+                break;
+
+        }
+    }
+
 
     @Override
     public void init() {
@@ -37,6 +129,11 @@ public class BallSlotTest extends OpMode {
         ballSlot3.initSlot(hardwareMap, "distanceSensor3", "colorSensor3");
 
         sorter.initSorter(hardwareMap);
+    }
+
+    @Override
+    public void start() {
+        setBallSlotState(BallSlotStates.AUTOSPINNER);
     }
 
     @Override
@@ -49,6 +146,9 @@ public class BallSlotTest extends OpMode {
             ballSlots[i].detectBall();
         }
 
+        autosortStateMachine();
+
+        /*
 
         if (ballSlot2.hasBall()) {
             for (int i= 0; i < 3; i++) {
@@ -61,17 +161,9 @@ public class BallSlotTest extends OpMode {
             }
         }
 
-        // GREEN FOR A, B FOR PURPLE
-        if (gamepad1.aWasPressed()) {
-            for (int i = ballSlots.length - 1; i <= 0; i--) {
-                // currentslot = ballSlots[i];
-                if (ballSlots[i].detectColor() == "green" && i == 2) {
-                    sorter.turnSorter(1);
-                } else if (!ballSlots[i].hasBall() && i == 2) {
-                    sorter.target -= sorter.INCREMENT;
-                }
-            }
-        }
+         */
+
+
 
     }
 }

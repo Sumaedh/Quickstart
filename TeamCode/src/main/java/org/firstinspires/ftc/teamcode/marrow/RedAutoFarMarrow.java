@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
+/*
 @Autonomous(name = "Blue Auto Far Safe (Marrow)", group = "Marrow")
 public class RedAutoFarMarrow extends OpMode {
 
@@ -752,3 +752,5 @@ public class RedAutoFarMarrow extends OpMode {
         telemetry.update();
     }
 }
+
+ */

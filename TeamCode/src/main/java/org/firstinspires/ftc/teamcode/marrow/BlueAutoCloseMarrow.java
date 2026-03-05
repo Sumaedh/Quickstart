@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
+/*
 @Autonomous(name = "Blue Auto Close Safe (Marrow)", group = "Marrow")
 public class BlueAutoCloseMarrow extends OpMode {
 
@@ -643,3 +643,5 @@ public class BlueAutoCloseMarrow extends OpMode {
         telemetry.update();
     }
 }
+
+ */

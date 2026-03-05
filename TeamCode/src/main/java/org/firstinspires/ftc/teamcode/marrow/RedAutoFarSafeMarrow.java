@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+/*
 @Autonomous(name = "Red Auto Far Safe (Marrow)", group = "Marrow")
 public class RedAutoFarSafeMarrow extends OpMode {
 
@@ -280,7 +281,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
 
     private void moveSorterTo(double ticks, int nextState) {
         sorter.setSorterTarget(ticks);
-        if (sorter.isBusy()) {
+        if (sorter.sorterAtTarget()) {
             setPathState(nextState);
         }
     }
@@ -369,7 +370,9 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToLow, true);
-                if (sorter.isBusy()) setPathState(11);
+                if (sorter.sorterAtTarget()) {
+                    setPathState(11);
+                }
                 break;
 
             case 11:
@@ -455,7 +458,9 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 sorter.setSorterTarget(1344);
                 shooter.setCurTargetVelocity("0", 0);
                 follower.followPath(alignToMid, true);
-                if (sorter.isBusy()) setPathState(22);
+                if (sorter.sorterAtTarget()) {
+                    setPathState(22);
+                }
                 break;
 
             case 22:
@@ -556,7 +561,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
     @Override
     public void loop() {
         shooter.PIDFShootingLoop();
-        sorter.update();
+        sorter.PIDFSorterLoop();
         pitch.pitchDown();
 
         follower.update();
@@ -575,3 +580,5 @@ public class RedAutoFarSafeMarrow extends OpMode {
     }
 
 }
+
+ */

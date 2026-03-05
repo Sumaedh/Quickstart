@@ -17,7 +17,7 @@ public class Pitch {
     }
 
     public void pitchDown() {
-        pitchServo.setPosition(0.75);
+        pitchServo.setPosition(0.45);
     }
 
     public void setPitchServo(double pos) {

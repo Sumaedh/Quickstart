@@ -78,6 +78,23 @@ public class OdometryTester extends OpMode {
                 DistanceUnit.INCH, 0, 0,
                 AngleUnit.DEGREES, 0
         );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         pinpoint.setPosition(startPosition);
 
         rotationMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -93,7 +110,7 @@ public class OdometryTester extends OpMode {
         double yDistance = (targetY) - (pinpoint.getPosY(DistanceUnit.INCH) + STARTING_Y);
 
 
-        double angleToTarget = Math.toDegrees(Math.atan2(yDistance, xDistance));
+        double angleToTarget = (Math.toDegrees(Math.atan2(yDistance, xDistance))) - 90;
         double robotHeading = pinpoint.getHeading(AngleUnit.DEGREES);
         double turretAngle = angleToTarget - robotHeading;
 

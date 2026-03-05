@@ -11,7 +11,7 @@ public class Lever {
     Servo rightLeverServo;
 
     double LEVER_UP_POS = 0.17;
-    double LEVER_DOWN_POS = 0.015;
+    double LEVER_DOWN_POS = 0.03;
 
     public void initLever(HardwareMap hwMap) {
         leftLeverServo = hwMap.get(Servo.class, "leftLeverServo");

@@ -1,27 +1,25 @@
-
 package org.firstinspires.ftc.teamcode;
+
 
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Sorter {
-
     DcMotor sorterMotor;
 
     private PIDController sorterController;
 
-    private double pSorting = 0.004;
+    private double pSorting = 0.0083;
     private double iSorting = 0.0;
-    private double dSorting = 0.00027;
-    public static double kSSorting = 0.034;
+    private double dSorting = 0.0002;
 
-    private static final double TICKS_PER_REV = 537.6 * (double)( 10 / 14);
+    public static double kSSorting = 0.0;
 
-    public double INCREMENT = TICKS_PER_REV / 3;
+    private static final double TICKS_PER_REV = 537.6 * ((double) 10 / 14);
+    public static double INCREMENT = TICKS_PER_REV / 3;
 
     public double SORTER_TOLERANCE = 2.25;
 
@@ -33,9 +31,10 @@ public class Sorter {
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         sorterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         sorterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //sorterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         sorterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
+
 
     public void turnSorter(int turns) {
         for (int i = 0; i < turns; i++) {
@@ -52,7 +51,7 @@ public class Sorter {
         return null;
     }
 
-    public boolean SorterAtTarget() {
+    public boolean sorterAtTarget() {
         if ((sorterMotor.getCurrentPosition() >= (target - SORTER_TOLERANCE)) && (sorterMotor.getCurrentPosition() <= (target+ SORTER_TOLERANCE))) {
             return true;
         } else {
@@ -61,22 +60,13 @@ public class Sorter {
     }
 
     public void PIDFSorterLoop() {
-        sorterController.setPID(pSorting, iSorting, dSorting);
 
+        sorterController.setPID(pSorting,iSorting,dSorting);
         double currentPos = sorterMotor.getCurrentPosition();
-        double error = target - currentPos;
-
         double pidOutput = sorterController.calculate(currentPos, target);
+        double error = target - currentPos;
         double staticFF = kSSorting * Math.signum(error);
-        double motorPower = pidOutput + staticFF;
 
-        sorterMotor.setPower(motorPower);
-    }
-
-    public void update() {
-    }
-
-    public boolean isBusy() {
-        return false;
+        sorterMotor.setPower(pidOutput + staticFF);
     }
 }

@@ -14,6 +14,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
 public class ShooterPID extends OpMode {
 
+    // 2000 long, f= 15
+    // 1680 short, f = 15
     public DcMotorEx shootingMotor;
 
     Servo leftLeverServo;
@@ -56,8 +58,8 @@ public class ShooterPID extends OpMode {
             leftLeverServo.setPosition(0.2);
             rightLeverServo.setPosition(0.2);
         } else {
-            leftLeverServo.setPosition(0.05);
-            rightLeverServo.setPosition(0.05);
+            leftLeverServo.setPosition(0.0);
+            rightLeverServo.setPosition(0.0);
         }
 
         pitchServo.setPosition(pitchPos);
