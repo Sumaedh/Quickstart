@@ -15,49 +15,45 @@ import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-/*
-@Autonomous(name = "Blue Auto Far Safe (Marrow)", group = "Marrow")
+
+@Autonomous(name = "Red Auto Far (Marrow)", group = "Marrow")
 public class RedAutoFarMarrow extends OpMode {
 
     private final Intake intake = new Intake();
     private final Lever lever = new Lever();
-    private final Pitch pitch = new Pitch();
+  //  private final Pitch pitch = new Pitch();
     private final Shooter shooter = new Shooter();
     private final Sorter sorter = new Sorter();
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
+    private final Timer intakeWaitTimer = new Timer();
+
     private int pathState = 0;
 
     private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90)).mirror();
     private final Pose scorePose = new Pose(59.421, 15.18, Math.toRadians(116.5)).mirror();
-    private final Pose pickupLowPose = new Pose(48, 36, Math.toRadians(180)).mirror();
-    private final Pose pickupLowIntake3 = new Pose(24, 36, Math.toRadians(180)).mirror();
-    private final Pose pickupMidPose = new Pose(44, 60, Math.toRadians(180)).mirror();
-    private final Pose pickupMidIntake3 = new Pose(24, 60, Math.toRadians(180)).mirror();
-    private final Pose pickupLastPose = new Pose(44, 84, Math.toRadians(180)).mirror();
-    private final Pose pickupLastIntake = new Pose(24, 84, Math.toRadians(180)).mirror();
+    private final Pose lowIntakePose = new Pose(24, 36, Math.toRadians(180)).mirror();
+    private final Pose midIntakePose = new Pose(24, 60, Math.toRadians(180)).mirror();
+    private final Pose lastIntakePose = new Pose(24, 84, Math.toRadians(180)).mirror();
     private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90)).mirror();
 
     private Path startPreload;
-    private PathChain score1, alignToLow, intakeLow, scoreFromLow;
-    private PathChain alignToMid, intakeMid, scoreFromMid, goToEnd;
-    private PathChain alignToLast, intakeLast, scoreFromLast;
+    private PathChain score1;
+    private PathChain pickupLowChain, scoreFromLow;
+    private PathChain pickupMidChain, scoreFromMid;
+    private PathChain pickupLastChain, scoreFromLast;
+    private PathChain goToEnd;
 
-    private static final double AUTO_DURATION = 30.0;
-    private static final double SAFETY_MARGIN = 5.0;
+    private static final double AUTO_DURATION  = 30.0;
+    private static final double SAFETY_MARGIN  = 5.0;
 
-    private static final double SHOOTER_TIMEOUT = 1.5;
-    private static final int SHOOTER_MAX_RETRIES = 1;
-    private int shooterRetryCount = 0;
-    private final Timer shooterWaitTimer = new Timer();
-    private static final double INTAKE_TIMEOUT = 2.0;
-    private static final int INTAKE_MAX_RETRIES = 1;
-    private int intakeRetryCount = 0;
-    private final Timer intakeWaitTimer = new Timer();
+    private static class Point {
+        final double x, y;
+        Point(double x, double y){ this.x = x; this.y = y; }
+    }
 
-    private static class Point { final double x, y; Point(double x, double y){this.x=x;this.y=y;} }
-    private final Point[] launchZone = new Point[]{
+    private final Point[] launchZone = new Point[] {
             new Point(56, 8),
             new Point(72, 24),
             new Point(40, 24)
@@ -83,7 +79,6 @@ public class RedAutoFarMarrow extends OpMode {
     }
 
     public void buildPaths() {
-
         startPreload = new Path(
                 new BezierCurve(
                         startPose,
@@ -102,123 +97,107 @@ public class RedAutoFarMarrow extends OpMode {
                         scorePose
                 ))
                 .addParametricCallback(0.01, () -> {
-                    Pose cur = follower.getPose();
-                    double dx = 144.0 - cur.getX();
-                    double dy = 72.0 - cur.getY();
-                    double d = Math.hypot(dx, dy);
-                    shooter.setCurTargetVelocityDynamic(d);
+                    shooter.setCurTargetVelocityParametric("long");
                 })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
 
-
-        alignToLow = follower.pathBuilder()
+        pickupLowChain = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         scorePose,
                         new Pose(64.0, 22.0),
                         new Pose(52.0, 30.0),
-                        pickupLowPose
+                        new Pose(48, 36, Math.toRadians(180))
                 ))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupLowPose.getHeading())
-                .build();
-
-        intakeLow = follower.pathBuilder()
+                .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
                 .addPath(new BezierCurve(
-                        pickupLowPose,
+                        new Pose(48, 36, Math.toRadians(180)),
                         new Pose(42.0, 36.0),
                         new Pose(32.0, 36.0),
-                        pickupLowIntake3
+                        lowIntakePose
                 ))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(806.4))
-                .setConstantHeadingInterpolation(pickupLowIntake3.getHeading())
+                .setConstantHeadingInterpolation(lowIntakePose.getHeading())
                 .setBrakingStrength(0.5)
+                .addParametricCallback(0.5138, () -> {
+                    intake.intakeOn();
+                    intakeWaitTimer.resetTimer();
+                })
+                .addParametricCallback(0.7569, () -> sorter.setSorterTargetParametric(627.2))
+                .addParametricCallback(0.9076, () -> sorter.setSorterTargetParametric(806.4))
                 .build();
 
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        pickupLowIntake3,
+                        lowIntakePose,
                         new Pose(34.0, 30.0),
                         new Pose(54.0, 22.0),
                         scorePose
                 ))
-                .addParametricCallback(0.01, () -> {
-                    Pose cur = follower.getPose();
-                    double dx = 144.0 - cur.getX();
-                    double dy = 72.0 - cur.getY();
-                    double d = Math.hypot(dx, dy);
-                    shooter.setCurTargetVelocityDynamic(d);
-                })
-                .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .setLinearHeadingInterpolation(lowIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 
-
-        alignToMid = follower.pathBuilder()
+        pickupMidChain = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         scorePose,
                         new Pose(64.0, 30.0),
                         new Pose(52.0, 52.0),
-                        pickupMidPose
+                        new Pose(44, 60, Math.toRadians(180))
                 ))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupMidPose.getHeading())
-                .build();
-
-        intakeMid = follower.pathBuilder()
+                .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
                 .addPath(new BezierCurve(
-                        pickupMidPose,
+                        new Pose(44, 60, Math.toRadians(180)),
                         new Pose(38.0, 60.0),
                         new Pose(30.0, 60.0),
-                        pickupMidIntake3
+                        midIntakePose
                 ))
-                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.81, () -> sorter.setSorterTargetParametric(1702.4))
-                .setConstantHeadingInterpolation(pickupMidIntake3.getHeading())
+                .setConstantHeadingInterpolation(midIntakePose.getHeading())
                 .setBrakingStrength(0.5)
+                .addParametricCallback(0.7111, () -> {
+                    intake.intakeOn();
+                    intakeWaitTimer.resetTimer();
+                })
+                .addParametricCallback(0.8554, () -> sorter.setSorterTargetParametric(1523.3))
+                .addParametricCallback(0.9451, () -> sorter.setSorterTargetParametric(1702.4))
                 .build();
 
         scoreFromMid = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        pickupMidIntake3,
+                        midIntakePose,
                         new Pose(34.0, 50.0),
                         new Pose(54.0, 26.0),
                         scorePose
                 ))
-                .addParametricCallback(0.01, () -> {
-                    Pose cur = follower.getPose();
-                    double dx = 144.0 - cur.getX();
-                    double dy = 72.0 - cur.getY();
-                    double d = Math.hypot(dx, dy);
-                    shooter.setCurTargetVelocityDynamic(d);
-                })
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long", 0))
                 .setHeadingConstraint(4)
-                .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
+                .setLinearHeadingInterpolation(midIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 
-
-        alignToLast = follower.pathBuilder()
+        pickupLastChain = follower.pathBuilder()
                 .addPath(new BezierCurve(
                         scorePose,
                         new Pose(62.0, 28.0),
                         new Pose(50.0, 58.0),
-                        pickupLastPose
+                        new Pose(44, 84, Math.toRadians(180))
                 ))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
-                .build();
-
-        intakeLast = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        pickupLastPose,
+                        new Pose(44, 84, Math.toRadians(180)),
                         new Pose(38.0, 84.0),
                         new Pose(30.0, 84.0),
-                        pickupLastIntake
+                        lastIntakePose
                 ))
                 .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .addParametricCallback(0.7799, () -> {
+                    intake.intakeOn();
+                    intakeWaitTimer.resetTimer();
+                })
                 .build();
 
         scoreFromLast = follower.pathBuilder()
                 .addPath(new BezierCurve(
-                        pickupLastIntake,
+                        lastIntakePose,
                         new Pose(30.0, 70.0),
                         new Pose(50.0, 32.0),
                         scorePose
@@ -239,7 +218,7 @@ public class RedAutoFarMarrow extends OpMode {
 
     @Override
     public void init() {
-        pathTimer = new Timer();
+        pathTimer  = new Timer();
         actionTimer = new Timer();
         opmodeTimer = new Timer();
 
@@ -249,12 +228,12 @@ public class RedAutoFarMarrow extends OpMode {
 
         intake.initIntake(hardwareMap);
         lever.initLever(hardwareMap);
-        pitch.initPitch(hardwareMap);
+      //  pitch.initPitch(hardwareMap);
         shooter.initShooter(hardwareMap);
         sorter.initSorter(hardwareMap);
 
         lever.leverDown();
-        pitch.pitchUp();
+      //  pitch.pitchUp();
     }
 
     private void setPathState(int pState) {
@@ -290,9 +269,9 @@ public class RedAutoFarMarrow extends OpMode {
     }
 
     private boolean shouldBailToPark() {
-        double elapsed = opmodeTimer.getElapsedTimeSeconds();
+        double elapsed   = opmodeTimer.getElapsedTimeSeconds();
         double remaining = AUTO_DURATION - elapsed;
-        double required = getEstimatedRemainingTimeFromState(pathState);
+        double required  = getEstimatedRemainingTimeFromState(pathState);
         return remaining < SAFETY_MARGIN && remaining < required;
     }
 
@@ -301,87 +280,14 @@ public class RedAutoFarMarrow extends OpMode {
         pathState = 100;
     }
 
-    private boolean ensureShooterAtTargetOrRetry() {
-        if (shooter.shooterAtTarget()) {
-            shooterRetryCount = 0;
-            return true;
-        }
-
-        if (shooterRetryCount == 0) {
-            shooterRetryCount++;
-            shooterWaitTimer.resetTimer();
-            return false;
-        }
-
-        if (shooterWaitTimer.getElapsedTimeSeconds() > SHOOTER_TIMEOUT) {
-            if (shooterRetryCount < SHOOTER_MAX_RETRIES) {
-                shooterRetryCount++;
-                shooterWaitTimer.resetTimer();
-            } else {
-                shooterRetryCount = 0;
-            }
-            return false;
-        }
-
-        return false;
-    }
-
-    private boolean ensureIntakeFinishedOrRetry(boolean pathBusy,
-                                                Runnable startIntakePath,
-                                                Runnable onGiveUp) {
-        if (!pathBusy) {
-            intakeRetryCount = 0;
-            return true;
-        }
-
-        if (intakeRetryCount == 0) {
-            intakeRetryCount++;
-            intakeWaitTimer.resetTimer();
-            return false;
-        }
-
-        if (intakeWaitTimer.getElapsedTimeSeconds() > INTAKE_TIMEOUT) {
-            if (intakeRetryCount < INTAKE_MAX_RETRIES) {
-                intakeRetryCount++;
-                intakeWaitTimer.resetTimer();
-                if (startIntakePath != null) startIntakePath.run();
-            } else {
-                intakeRetryCount = 0;
-                if (onGiveUp != null) onGiveUp.run();
-            }
-            return false;
-        }
-
-        return false;
-    }
-
-    private void moveSorterTo(double ticks, int nextState) {
-        sorter.setSorterTarget(ticks);
-        if (sorter.isBusy()) {
-            setPathState(nextState);
-        }
-    }
-
     public void autonomousPathUpdate() {
-        Pose cur;
-        double dx, dy, d;
-        double elapsed = opmodeTimer.getElapsedTimeSeconds();
-        double remaining = AUTO_DURATION - elapsed;
-
-        if (pathState <= 40 && shouldBailToPark()) {
+        if (pathState <= 32 && shouldBailToPark()) {
             bailToEndZone();
             return;
         }
 
-        if (pathState >= 32 && pathState < 40) {
-            if (remaining < 6.0) {
-                follower.followPath(goToEnd, true);
-                pathState = 100;
-                return;
-            }
-        }
-
         switch (pathState) {
+
             case 0:
                 follower.followPath(startPreload);
                 setPathState(1);
@@ -396,12 +302,7 @@ public class RedAutoFarMarrow extends OpMode {
 
             case 2:
                 if (!follower.isBusy()) {
-                    if (isPoseTooFarFrom(scorePose, 4.0) ||
-                            !isInLaunchZone(follower.getPose().getX(), follower.getPose().getY())) {
-                        bailToEndZone();
-                        break;
-                    }
-                    if (ensureShooterAtTargetOrRetry()) {
+                    if (shooter.shooterAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
                         setPathState(3);
@@ -418,11 +319,12 @@ public class RedAutoFarMarrow extends OpMode {
                 break;
 
             case 4:
-                moveSorterTo(179.2, 5);
+                sorter.setSorterTarget(1 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) setPathState(5);
                 break;
 
             case 5:
-                if (ensureShooterAtTargetOrRetry()) {
+                if (shooter.shooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(6);
@@ -438,11 +340,12 @@ public class RedAutoFarMarrow extends OpMode {
                 break;
 
             case 7:
-                moveSorterTo(358.4, 8);
+                sorter.setSorterTarget(2 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) setPathState(8);
                 break;
 
             case 8:
-                if (ensureShooterAtTargetOrRetry()) {
+                if (shooter.shooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(9);
@@ -458,232 +361,207 @@ public class RedAutoFarMarrow extends OpMode {
                 break;
 
             case 10:
-                sorter.setSorterTarget(448);
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(alignToLow, true);
-                if (sorter.isBusy()) {
+                follower.followPath(pickupLowChain, 0.32, true);
+                if (sorter.sorterAtTarget()) {
                     setPathState(11);
                 }
                 break;
 
             case 11:
                 if (!follower.isBusy()) {
-                    intake.intakeOn();
-                    follower.followPath(intakeLow, 0.32, true);
-                    intakeWaitTimer.resetTimer();
+                    intake.intakeOff();
+                    follower.followPath(scoreFromLow, true);
                     setPathState(12);
                 }
                 break;
 
             case 12:
-                if (ensureIntakeFinishedOrRetry(
-                        follower.isBusy(),
-                        () -> follower.followPath(intakeLow, 0.32, true),
-                        intake::intakeOff
-                )) {
-                    intake.intakeOff();
-                    sorter.setSorterTarget(896);
-                    follower.followPath(scoreFromLow, true);
-                    setPathState(13);
+                if (!follower.isBusy()) {
+                    if (shooter.shooterAtTarget()) {
+                        lever.leverUp();
+                        actionTimer.resetTimer();
+                        setPathState(13);
+                    }
                 }
                 break;
 
             case 13:
-                if (!follower.isBusy()) {
-                    if (isPoseTooFarFrom(scorePose, 4.0) ||
-                            !isInLaunchZone(follower.getPose().getX(), follower.getPose().getY())) {
-                        bailToEndZone();
-                        break;
-                    }
-                    if (ensureShooterAtTargetOrRetry()) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(14);
-                    }
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
+                    setPathState(14);
                 }
                 break;
 
             case 14:
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    lever.leverDown();
-                    actionTimer.resetTimer();
+                sorter.setSorterTarget(5 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) {
                     setPathState(15);
                 }
                 break;
 
             case 15:
-                moveSorterTo(1075.2, 16);
+                if (shooter.shooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(16);
+                }
                 break;
 
             case 16:
-                if (ensureShooterAtTargetOrRetry()) {
-                    lever.leverUp();
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
                     actionTimer.resetTimer();
                     setPathState(17);
                 }
                 break;
 
             case 17:
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    lever.leverDown();
-                    actionTimer.resetTimer();
+                sorter.setSorterTarget(6 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) {
                     setPathState(18);
                 }
                 break;
 
             case 18:
-                moveSorterTo(1254.4, 19);
+                if (shooter.shooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(19);
+                }
                 break;
 
             case 19:
-                if (ensureShooterAtTargetOrRetry()) {
-                    lever.leverUp();
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
                     actionTimer.resetTimer();
                     setPathState(20);
                 }
                 break;
 
             case 20:
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    lever.leverDown();
-                    actionTimer.resetTimer();
+                shooter.setCurTargetVelocity("0", 0);
+                follower.followPath(pickupMidChain, 0.32, true);
+                if (sorter.sorterAtTarget()) {
                     setPathState(21);
                 }
                 break;
 
             case 21:
-                sorter.setSorterTarget(1344);
-                shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(alignToMid, true);
-                if (sorter.isBusy()) {
+                if (!follower.isBusy()) {
+                    intake.intakeOff();
+                    follower.followPath(scoreFromMid, true);
                     setPathState(22);
                 }
                 break;
 
             case 22:
                 if (!follower.isBusy()) {
-                    intake.intakeOn();
-                    follower.followPath(intakeMid, 0.32, true);
-                    intakeWaitTimer.resetTimer();
-                    setPathState(23);
+                    if (shooter.shooterAtTarget()) {
+                        lever.leverUp();
+                        actionTimer.resetTimer();
+                        setPathState(23);
+                    }
                 }
                 break;
 
             case 23:
-                if (ensureIntakeFinishedOrRetry(
-                        follower.isBusy(),
-                        () -> follower.followPath(intakeMid, 0.32, true),
-                        intake::intakeOff
-                )) {
-                    intake.intakeOff();
-                    sorter.setSorterTarget(1792);
-                    follower.followPath(scoreFromMid, true);
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
                     setPathState(24);
                 }
                 break;
 
             case 24:
-                if (!follower.isBusy()) {
-                    if (isPoseTooFarFrom(scorePose, 4.0) ||
-                            !isInLaunchZone(follower.getPose().getX(), follower.getPose().getY())) {
-                        bailToEndZone();
-                        break;
-                    }
-                    if (ensureShooterAtTargetOrRetry()) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(25);
-                    }
+                sorter.setSorterTarget(9 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) {
+                    setPathState(25);
                 }
                 break;
 
             case 25:
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    lever.leverDown();
+                if (shooter.shooterAtTarget()) {
+                    lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(26);
                 }
                 break;
 
             case 26:
-                moveSorterTo(1971.2, 27);
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
+                    setPathState(27);
+                }
                 break;
 
             case 27:
-                if (ensureShooterAtTargetOrRetry()) {
-                    lever.leverUp();
-                    actionTimer.resetTimer();
+                sorter.setSorterTarget(10 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) {
                     setPathState(28);
                 }
                 break;
 
             case 28:
-                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
-                    lever.leverDown();
+                if (shooter.shooterAtTarget()) {
+                    lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(29);
                 }
                 break;
 
             case 29:
-                moveSorterTo(2150.4, 30);
-                break;
-
-            case 30:
-                if (ensureShooterAtTargetOrRetry()) {
-                    lever.leverUp();
-                    actionTimer.resetTimer();
-                    setPathState(31);
-                }
-                break;
-
-            case 31:
                 if (actionTimer.getElapsedTimeSeconds() > 0.3) {
                     lever.leverDown();
                     actionTimer.resetTimer();
+                    setPathState(30);
+                }
+                break;
+
+            case 30:
+                shooter.setCurTargetVelocity("0", 0);
+                follower.followPath(pickupLastChain, 0.32, true);
+                setPathState(31);
+                break;
+
+            case 31:
+                if (!follower.isBusy()) {
+                    intake.intakeOff();
+                    follower.followPath(scoreFromLast, true);
                     setPathState(32);
                 }
                 break;
 
-
             case 32:
-                follower.followPath(alignToLast, true);
-                setPathState(33);
+                if (!follower.isBusy()) {
+                    if (shooter.shooterAtTarget()) {
+                        lever.leverUp();
+                        actionTimer.resetTimer();
+                        setPathState(33);
+                    }
+                }
                 break;
 
             case 33:
-                if (!follower.isBusy()) {
-                    intake.intakeOn();
-                    follower.followPath(intakeLast, 0.32, true);
-                    intakeWaitTimer.resetTimer();
+                if (actionTimer.getElapsedTimeSeconds() > 0.3) {
+                    lever.leverDown();
+                    actionTimer.resetTimer();
                     setPathState(34);
                 }
                 break;
 
             case 34:
-                if (ensureIntakeFinishedOrRetry(
-                        follower.isBusy(),
-                        () -> follower.followPath(intakeLast, 0.32, true),
-                        intake::intakeOff
-                )) {
-                    intake.intakeOff();
-                    follower.followPath(scoreFromLast, true);
-                    setPathState(35);
-                }
+                sorter.setSorterTarget(11 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) setPathState(35);
                 break;
 
             case 35:
-                if (!follower.isBusy()) {
-                    if (isPoseTooFarFrom(scorePose, 4.0) ||
-                            !isInLaunchZone(follower.getPose().getX(), follower.getPose().getY())) {
-                        bailToEndZone();
-                        break;
-                    }
-                    if (ensureShooterAtTargetOrRetry()) {
-                        lever.leverUp();
-                        actionTimer.resetTimer();
-                        setPathState(36);
-                    }
+                if (shooter.shooterAtTarget()) {
+                    lever.leverUp();
+                    actionTimer.resetTimer();
+                    setPathState(36);
                 }
                 break;
 
@@ -696,11 +574,12 @@ public class RedAutoFarMarrow extends OpMode {
                 break;
 
             case 37:
-                moveSorterTo(2300, 38);
+                sorter.setSorterTarget(12 * Sorter.INCREMENT);
+                if (sorter.sorterAtTarget()) setPathState(38);
                 break;
 
             case 38:
-                if (ensureShooterAtTargetOrRetry()) {
+                if (shooter.shooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(39);
@@ -716,11 +595,12 @@ public class RedAutoFarMarrow extends OpMode {
                 break;
 
             case 40:
-                follower.followPath(goToEnd, true);
-                setPathState(100);
+                follower.followPath(goToEnd, 1, true);
+                setPathState(41);
                 break;
 
-            case 100:
+
+            case 41:
                 break;
         }
     }
@@ -734,13 +614,13 @@ public class RedAutoFarMarrow extends OpMode {
     @Override
     public void loop() {
         shooter.PIDFShootingLoop();
-        sorter.update();
-        pitch.pitchDown();
+        sorter.PIDFSorterLoop();
+       // pitch.pitchDown();
 
         follower.update();
         autonomousPathUpdate();
 
-        double elapsed = opmodeTimer.getElapsedTimeSeconds();
+        double elapsed   = opmodeTimer.getElapsedTimeSeconds();
         double remaining = AUTO_DURATION - elapsed;
 
         telemetry.addData("path state", pathState);
@@ -752,5 +632,3 @@ public class RedAutoFarMarrow extends OpMode {
         telemetry.update();
     }
 }
-
- */
