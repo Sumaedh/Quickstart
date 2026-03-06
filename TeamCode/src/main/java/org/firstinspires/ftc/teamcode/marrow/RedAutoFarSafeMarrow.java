@@ -52,7 +52,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
                 .addPath(new BezierLine(secondPose, scorePose))
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(secondPose.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
                 .build();
 
         alignToLow = follower.pathBuilder()
@@ -71,7 +71,7 @@ public class RedAutoFarSafeMarrow extends OpMode {
         scoreFromLow = follower.pathBuilder()
                 .addPath(new BezierLine(pickupLowIntake3, scorePose))
                 .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
                 .build();
 
         alignToMid = follower.pathBuilder()

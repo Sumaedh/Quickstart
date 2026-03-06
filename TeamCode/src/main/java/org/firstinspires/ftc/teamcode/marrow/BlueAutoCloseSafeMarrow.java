@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.marrow;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
@@ -11,17 +12,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Intake;
 import org.firstinspires.ftc.teamcode.Lever;
-import org.firstinspires.ftc.teamcode.Pitch;
 import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue Auto Far (Marrow)", group = "Marrow")
-public class BlueAutoFarMarrow extends OpMode {
+@Autonomous(name = "Blue Auto Close Safe (Marrow)", group = "Main")
+public class BlueAutoCloseSafeMarrow extends OpMode {
 
     private final Intake intake = new Intake();
     private final Lever lever = new Lever();
-   // private final Pitch pitch = new Pitch();
     private final Shooter shooter = new Shooter();
     private final Sorter sorter = new Sorter();
 
@@ -31,14 +30,16 @@ public class BlueAutoFarMarrow extends OpMode {
 
     private int pathState = 0;
 
-    private final Pose startPose = new Pose(56.625, 8.75, Math.toRadians(90));
-    private final Pose scorePose = new Pose(59.421, 15.18, Math.toRadians(116.5));
-    private final Pose lowIntakePose = new Pose(24, 36, Math.toRadians(180));
-    private final Pose midIntakePose = new Pose(24, 60, Math.toRadians(180));
-    private final Pose lastIntakePose = new Pose(24, 84, Math.toRadians(180));
-    private final Pose endPose = new Pose(60.362, 44.038, Math.toRadians(90));
+    private final Pose startPose = new Pose(34.138, 135.25, Math.toRadians(270));
+    private final Pose scorePose = new Pose(51.7, 92.15, Math.toRadians(136));
 
-    private Path startPreload;
+    private final Pose pickupLowIntake3 = new Pose(51.7, 92.15, Math.toRadians(180));
+    private final Pose pickupMidIntake3 = new Pose(23.072, 59.724, Math.toRadians(180));
+
+    private final Pose pickupHighIntake3 = new Pose(16, 36 - 3.25, Math.toRadians(180));
+    private final Pose endPose = new Pose(52, 54, Math.toRadians(180));
+
+    private PathChain startPreload;
     private PathChain score1;
     private PathChain pickupLowChain, scoreFromLow;
     private PathChain pickupMidChain, scoreFromMid;
@@ -46,172 +47,75 @@ public class BlueAutoFarMarrow extends OpMode {
     private PathChain goToEnd;
 
     private static final double AUTO_DURATION  = 30.0;
-    private static final double SAFETY_MARGIN  = 5.0;
-
-    private static class Point {
-        final double x, y;
-        Point(double x, double y){ this.x = x; this.y = y; }
-    }
-
-    private final Point[] launchZone = new Point[] {
-            new Point(56, 8),
-            new Point(72, 24),
-            new Point(40, 24)
-    };
-
-    private boolean isInLaunchZone(double x, double y) {
-        boolean inside = false;
-        for (int i = 0, j = launchZone.length - 1; i < launchZone.length; j = i++) {
-            Point pi = launchZone[i];
-            Point pj = launchZone[j];
-            boolean intersect = ((pi.y > y) != (pj.y > y)) &&
-                    (x < (pj.x - pi.x) * (y - pi.y) / ((pj.y - pi.y) + 1e-6) + pi.x);
-            if (intersect) inside = !inside;
-        }
-        return inside;
-    }
-
-    private boolean isPoseTooFarFrom(Pose target, double maxDist) {
-        Pose cur = follower.getPose();
-        double dx = cur.getX() - target.getX();
-        double dy = cur.getY() - target.getY();
-        return Math.hypot(dx, dy) > maxDist;
-    }
+    private static final double SAFETY_MARGIN  = 2.0;
 
     public void buildPaths() {
-        startPreload = new Path(
-                new BezierCurve(
-                        startPose,
-                        new Pose(56.5, 10.5),
-                        new Pose(55.8, 15.18),
-                        scorePose
-                )
-        );
-        startPreload.setConstantHeadingInterpolation(scorePose.getHeading());
-
-        score1 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        startPose,
-                        new Pose(56.0, 16.0),
-                        new Pose(58.5, 16.0),
-                        scorePose
-                ))
-                .addParametricCallback(0.01, () -> {
-                    shooter.setCurTargetVelocityParametric("long", 0);
-                })
-                .setHeadingConstraint(4)
+        startPreload = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, scorePose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
 
-        pickupLowChain = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(64.0, 22.0),
-                        new Pose(52.0, 30.0),
-                        new Pose(48, 36, Math.toRadians(180))
-                ))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
-                .addPath(new BezierCurve(
-                        new Pose(48, 36, Math.toRadians(180)),
-                        new Pose(42.0, 36.0),
-                        new Pose(32.0, 36.0),
-                        lowIntakePose
-                ))
-                .setConstantHeadingInterpolation(lowIntakePose.getHeading())
-                .setBrakingStrength(0.5)
-                .addParametricCallback(0.5138, () -> {
-                    intake.intakeOn();
-                    intakeWaitTimer.resetTimer();
-                })
-                .addParametricCallback(0.7569, () -> sorter.setSorterTargetParametric(627.2))
-                .addParametricCallback(0.9076, () -> sorter.setSorterTargetParametric(806.4))
+
+        score1 = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, scorePose))
+                .setHeadingConstraint(4)
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("short", 0))
                 .build();
+
+        pickupLowChain = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickupLowIntake3))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupLowIntake3.getHeading())
+                .setBrakingStrength(0.5)
+                .addParametricCallback(0.445, () -> sorter.setSorterTargetParametric(3 * sorter.INCREMENT))
+                .addParametricCallback(0.68, () -> sorter.setSorterTargetParametric(4 * sorter.INCREMENT))
+                .build();
+
 
         scoreFromLow = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        lowIntakePose,
-                        new Pose(34.0, 30.0),
-                        new Pose(54.0, 22.0),
-                        scorePose
-                ))
+                .addPath(new BezierLine(pickupLowIntake3, scorePose))
+                .setLinearHeadingInterpolation(pickupLowIntake3.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
-                .setLinearHeadingInterpolation(lowIntakePose.getHeading(), scorePose.getHeading())
                 .build();
+
 
         pickupMidChain = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(64.0, 30.0),
-                        new Pose(52.0, 52.0),
-                        new Pose(44, 60, Math.toRadians(180))
-                ))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
-                .addPath(new BezierCurve(
-                        new Pose(44, 60, Math.toRadians(180)),
-                        new Pose(38.0, 60.0),
-                        new Pose(30.0, 60.0),
-                        midIntakePose
-                ))
-                .setConstantHeadingInterpolation(midIntakePose.getHeading())
+                .addPath(new BezierLine(scorePose, pickupMidIntake3))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupMidIntake3.getHeading())
                 .setBrakingStrength(0.5)
-                .addParametricCallback(0.7111, () -> {
-                    intake.intakeOn();
-                    intakeWaitTimer.resetTimer();
-                })
-                .addParametricCallback(0.8554, () -> sorter.setSorterTargetParametric(1523.3))
-                .addParametricCallback(0.9451, () -> sorter.setSorterTargetParametric(1702.4))
+                .addParametricCallback(0.34, () -> sorter.setSorterTargetParametric(7 * sorter.INCREMENT))
+                .addParametricCallback(0.5, () -> sorter.setSorterTargetParametric(8 * sorter.INCREMENT))
                 .build();
+
 
         scoreFromMid = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        midIntakePose,
-                        new Pose(34.0, 50.0),
-                        new Pose(54.0, 26.0),
-                        scorePose
-                ))
+                .addPath(new BezierLine(pickupMidIntake3, scorePose))
+                .setLinearHeadingInterpolation(pickupMidIntake3.getHeading(), scorePose.getHeading())
                 .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long", 0))
                 .setHeadingConstraint(4)
-                .setLinearHeadingInterpolation(midIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 
+
         pickupLastChain = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(62.0, 28.0),
-                        new Pose(50.0, 58.0),
-                        new Pose(44, 84, Math.toRadians(180))
-                ))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), Math.toRadians(180))
-                .addPath(new BezierCurve(
-                        new Pose(44, 84, Math.toRadians(180)),
-                        new Pose(38.0, 84.0),
-                        new Pose(30.0, 84.0),
-                        lastIntakePose
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-                .addParametricCallback(0.7799, () -> {
+                .addPath(new BezierLine(scorePose, pickupHighIntake3))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickupHighIntake3.getHeading())
+                .setBrakingStrength(0.5)
+                .addParametricCallback(0.78, () -> {
                     intake.intakeOn();
                     intakeWaitTimer.resetTimer();
                 })
                 .build();
 
+
         scoreFromLast = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        lastIntakePose,
-                        new Pose(30.0, 70.0),
-                        new Pose(50.0, 32.0),
-                        scorePose
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(180), scorePose.getHeading())
+                .addPath(new BezierLine(pickupHighIntake3, scorePose))
+                .setLinearHeadingInterpolation(pickupHighIntake3.getHeading(), scorePose.getHeading())
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocity("long", 0))
                 .build();
 
+
         goToEnd = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(60.0, 28.0),
-                        new Pose(60.0, 38.0),
-                        endPose
-                ))
+                .addPath(new BezierLine(scorePose, endPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading())
                 .build();
     }
@@ -223,17 +127,17 @@ public class BlueAutoFarMarrow extends OpMode {
         opmodeTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        buildPaths();
-        follower.setStartingPose(startPose);
 
         intake.initIntake(hardwareMap);
         lever.initLever(hardwareMap);
-       // pitch.initPitch(hardwareMap);
         shooter.initShooter(hardwareMap);
         sorter.initSorter(hardwareMap);
 
+        buildPaths();
+
+        follower.setStartingPose(startPose);
+
         lever.leverDown();
-       // pitch.pitchUp();
     }
 
     private void setPathState(int pState) {
@@ -243,26 +147,11 @@ public class BlueAutoFarMarrow extends OpMode {
 
     private double getEstimatedRemainingTimeFromState(int state) {
         switch (state) {
-            case 0: case 1: case 2: case 3: case 4:
-            case 5: case 6: case 7: case 8: case 9:
+            case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9:
                 return 8.0;
-
-            case 10: case 11: case 12: case 13: case 14:
-            case 15: case 16: case 17: case 18: case 19:
-            case 20:
-            case 21:
-            case 22:
-            case 23:
-            case 24:
-            case 25:
-            case 26:
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
+            case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19:
+            case 20: case 21: case 22: case 23: case 24: case 25: case 26: case 27: case 28: case 29:
                 return 10.0;
-
             default:
                 return 3.0;
         }
@@ -289,7 +178,7 @@ public class BlueAutoFarMarrow extends OpMode {
         switch (pathState) {
 
             case 0:
-                follower.followPath(startPreload);
+                follower.followPath(startPreload, true);
                 setPathState(1);
                 break;
 
@@ -301,7 +190,7 @@ public class BlueAutoFarMarrow extends OpMode {
                 break;
 
             case 2:
-               if (!follower.isBusy()) {
+                if (!follower.isBusy()) {
                     if (shooter.shooterAtTarget()) {
                         lever.leverUp();
                         actionTimer.resetTimer();
@@ -324,7 +213,7 @@ public class BlueAutoFarMarrow extends OpMode {
                 break;
 
             case 5:
-              if (shooter.shooterAtTarget()) {
+                if (shooter.shooterAtTarget()) {
                     lever.leverUp();
                     actionTimer.resetTimer();
                     setPathState(6);
@@ -362,7 +251,7 @@ public class BlueAutoFarMarrow extends OpMode {
 
             case 10:
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(pickupLowChain, 0.32, true);
+                follower.followPath(pickupLowChain, true);
                 if (sorter.sorterAtTarget()) {
                     setPathState(11);
                 }
@@ -442,7 +331,7 @@ public class BlueAutoFarMarrow extends OpMode {
 
             case 20:
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(pickupMidChain, 0.32, true);
+                follower.followPath(pickupMidChain, true);
                 if (sorter.sorterAtTarget()) {
                     setPathState(21);
                 }
@@ -520,9 +409,9 @@ public class BlueAutoFarMarrow extends OpMode {
                 }
                 break;
 
-                case 30:
+            case 30:
                 shooter.setCurTargetVelocity("0", 0);
-                follower.followPath(pickupLastChain, 0.32, true);
+                follower.followPath(pickupLastChain, true);
                 setPathState(31);
                 break;
 
@@ -534,7 +423,7 @@ public class BlueAutoFarMarrow extends OpMode {
                 }
                 break;
 
-                case 32:
+            case 32:
                 if (!follower.isBusy()) {
                     if (shooter.shooterAtTarget()) {
                         lever.leverUp();
@@ -594,11 +483,10 @@ public class BlueAutoFarMarrow extends OpMode {
                 }
                 break;
 
-                case 40:
-                follower.followPath(goToEnd, 1, true);
+            case 40:
+                follower.followPath(goToEnd, true);
                 setPathState(41);
                 break;
-
 
             case 41:
                 break;
@@ -615,7 +503,6 @@ public class BlueAutoFarMarrow extends OpMode {
     public void loop() {
         shooter.PIDFShootingLoop();
         sorter.PIDFSorterLoop();
-       // pitch.pitchDown();
 
         follower.update();
         autonomousPathUpdate();

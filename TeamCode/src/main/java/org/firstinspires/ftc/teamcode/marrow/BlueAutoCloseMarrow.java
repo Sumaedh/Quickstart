@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Shooter;
 import org.firstinspires.ftc.teamcode.Sorter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Blue Auto Close Safe (Marrow)", group = "Marrow")
+@Autonomous(name = "Blue Auto Close(Marrow)", group = "Marrow")
 public class BlueAutoCloseMarrow extends OpMode {
 
     private final Intake intake = new Intake();
@@ -33,9 +33,9 @@ public class BlueAutoCloseMarrow extends OpMode {
 
     private final Pose startPose = new Pose(20.39, 121.42, Math.toRadians(142.5));
     private final Pose scorePose = new Pose(65.09, 78.28, Math.toRadians(135));
-    private final Pose lowIntakePose = new Pose(26.5, 84.24, Math.toRadians(180));
-    private final Pose midIntakePose = new Pose(26.5, 59.69, Math.toRadians(180));
-    private final Pose lastIntakePose = new Pose(26.5, 36, Math.toRadians(180));
+    private final Pose lowIntakePose = new Pose(26.5, 84.24 - 3, Math.toRadians(180));
+    private final Pose midIntakePose = new Pose(26.5, 59.69 - 3, Math.toRadians(180));
+    private final Pose lastIntakePose = new Pose(26.5, 36 - 3, Math.toRadians(180));
     private final Pose endPose = new Pose(65.5, 36.95, Math.toRadians(180));
 
     private Path startPreload;
@@ -46,7 +46,7 @@ public class BlueAutoCloseMarrow extends OpMode {
     private PathChain goToEnd;
 
     private static final double AUTO_DURATION  = 30.0;
-    private static final double SAFETY_MARGIN  = 5.0;
+    private static final double SAFETY_MARGIN  = 2.0;
 
 
     public void buildPaths() {
@@ -68,7 +68,7 @@ public class BlueAutoCloseMarrow extends OpMode {
                         scorePose
                 ))
                 .addParametricCallback(0.01, () -> {
-                    shooter.setCurTargetVelocityParametric("long");
+                    shooter.setCurTargetVelocityParametric("long", 0);
                 })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
@@ -98,7 +98,7 @@ public class BlueAutoCloseMarrow extends OpMode {
                         new Pose(50, 80),
                         scorePose
                 ))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
                 .setLinearHeadingInterpolation(lowIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 

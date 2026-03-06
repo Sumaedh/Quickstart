@@ -20,6 +20,8 @@ public class Intake {
         intakeMotor.setPower(0);
     }
 
+    public void intakePartial() { intakeMotor.setPower(0.0);}
+
     public void intakeReverse() {
         intakeMotor.setPower(-1);
     }

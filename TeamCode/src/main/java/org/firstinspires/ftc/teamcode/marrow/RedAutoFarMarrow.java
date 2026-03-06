@@ -97,7 +97,7 @@ public class RedAutoFarMarrow extends OpMode {
                         scorePose
                 ))
                 .addParametricCallback(0.01, () -> {
-                    shooter.setCurTargetVelocityParametric("long");
+                    shooter.setCurTargetVelocityParametric("long", 0);
                 })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
@@ -134,7 +134,7 @@ public class RedAutoFarMarrow extends OpMode {
                         new Pose(54.0, 22.0),
                         scorePose
                 ))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
                 .setLinearHeadingInterpolation(lowIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 

@@ -26,6 +26,7 @@ public class ShooterPID extends OpMode {
 
     public static double pitchPos = 0.75;
     public static double f = 0;
+    public static double i = 0;
     public static double p = 0;
     public double[] stepSizes = {10.0, 1.0, 0.1, 0.01, 0.001};
     public int stepIndex = 1;
@@ -44,7 +45,7 @@ public class ShooterPID extends OpMode {
         pitchServo.setDirection(Servo.Direction.REVERSE);
         pitchServo.setPosition(0);
 
-        PIDFCoefficients pidf = new PIDFCoefficients(p, 0, 0, f);
+        PIDFCoefficients pidf = new PIDFCoefficients(p, i, 0, f);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         shootingMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
 
@@ -63,7 +64,7 @@ public class ShooterPID extends OpMode {
         }
 
         pitchServo.setPosition(pitchPos);
-        PIDFCoefficients newPidf = new PIDFCoefficients(p, 0, 0, f);
+        PIDFCoefficients newPidf = new PIDFCoefficients(p, i, 0, f);
         shootingMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, newPidf);
 
         shootingMotor.setVelocity(curTargetVelocity);
@@ -76,6 +77,7 @@ public class ShooterPID extends OpMode {
         telemetry.addData("Current Velocity", curVelocity);
         telemetry.addData("Error", error);
         telemetry.addData("P", p);
+        telemetry.addData("P", i);
         telemetry.addData("F", f);
         telemetry.addData("Step Size", stepSizes[stepIndex]);
         telemetry.update();

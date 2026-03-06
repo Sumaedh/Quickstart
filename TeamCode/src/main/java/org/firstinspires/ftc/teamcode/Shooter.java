@@ -8,14 +8,14 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
     public class Shooter {
         DcMotorEx shootingMotor;
 
-        public double fShooting = 15;
-        public double pShooting = 250;
+        public double fShooting = 21.5;
+        public double pShooting = 500;
         public double curTargetVelocity = 0;
 
-        public double LONG_VELOCITY = 2000;
-        public double SHORT_VELOCITY = 1680;
+        public double LONG_VELOCITY = 1470;
+        public double SHORT_VELOCITY = 1200;
 
-        public double SHOOTER_TOLERANCE = 20;
+        public double SHOOTER_TOLERANCE = 50;
 
         public void initShooter(HardwareMap hwMap) {
             shootingMotor = hwMap.get(DcMotorEx.class, "shootingMotor");
@@ -30,15 +30,13 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
             shootingMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
 
-        public void setCurTargetVelocityParametric(String distance) {
+        public void setCurTargetVelocityParametric(String distance, int customLength) {
             if (distance == "long") {
                 curTargetVelocity = LONG_VELOCITY;
-                fShooting = 15;
             } else if (distance == "short") {
                 curTargetVelocity = SHORT_VELOCITY;
-                fShooting = 15.5;
-            } else if (distance == "0") {
-                curTargetVelocity = 0;
+            } else if (distance == "0" && customLength != 0) {
+                curTargetVelocity = customLength;
             } else {
                 curTargetVelocity = 0;
             }
@@ -48,10 +46,8 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
         public void setCurTargetVelocity(String distance, int customLength) {
             if (distance == "long") {
                 curTargetVelocity = LONG_VELOCITY;
-                fShooting = 15;
             } else if (distance == "short") {
                 curTargetVelocity = SHORT_VELOCITY;
-                fShooting = 15.5;
             } else if (distance == "0" && customLength != 0) {
                 curTargetVelocity = customLength;
             } else {

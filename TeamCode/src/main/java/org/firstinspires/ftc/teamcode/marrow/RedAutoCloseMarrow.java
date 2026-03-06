@@ -68,7 +68,7 @@ public class RedAutoCloseMarrow extends OpMode {
                         scorePose
                 ))
                 .addParametricCallback(0.01, () -> {
-                    shooter.setCurTargetVelocityParametric("long");
+                    shooter.setCurTargetVelocityParametric("long", 0);
                 })
                 .setHeadingConstraint(4)
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
@@ -98,7 +98,7 @@ public class RedAutoCloseMarrow extends OpMode {
                         new Pose(50, 80),
                         scorePose
                 ))
-                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long"))
+                .addParametricCallback(0.01, () -> shooter.setCurTargetVelocityParametric("long", 0))
                 .setLinearHeadingInterpolation(lowIntakePose.getHeading(), scorePose.getHeading())
                 .build();
 
